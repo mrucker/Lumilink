@@ -1,1 +1,11 @@
-# repo-template
+
+  # Working Mockup
+
+  This is a code bundle for Working Mockup. The original project is available at https://www.figma.com/design/AiS8J9vkPmkUbDUZ7DUwL6/Working-Mockup.
+
+  ## Running the code
+
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
+  
