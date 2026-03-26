@@ -25,6 +25,11 @@ export interface BucketListItem {
   completed: boolean;
 }
 
+export interface RelationshipTrend {
+  direction: 'up' | 'down' | 'steady';
+  nudge: string;
+}
+
 export interface Friend {
   id: string;
   name: string;
@@ -35,6 +40,7 @@ export interface Friend {
   tasks: Task[];
   relationshipNature?: RelationshipNature;
   bucketList?: BucketListItem[];
+  trend?: RelationshipTrend;
 }
 
 export interface Task {
@@ -183,6 +189,7 @@ export default function App() {
         { id: 'bl-1-2', title: 'Take a cooking class in Italy', completed: false },
         { id: 'bl-1-3', title: 'Run a half marathon together', completed: false },
       ],
+      trend: { direction: 'up', nudge: '3 tasks completed this month' },
     },
     {
       id: '2',
@@ -201,6 +208,7 @@ export default function App() {
         { id: 'bl-2-1', title: 'Attend an NBA Finals game', completed: false },
         { id: 'bl-2-2', title: 'Build a gaming PC together', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 2 weeks' },
     },
     {
       id: '3',
@@ -220,6 +228,7 @@ export default function App() {
         { id: 'bl-3-2', title: 'Start a book club together', completed: true },
         { id: 'bl-3-3', title: 'Learn pottery together', completed: false },
       ],
+      trend: { direction: 'up', nudge: '4 tasks completed this month' },
     },
     {
       id: '4',
@@ -236,6 +245,7 @@ export default function App() {
       bucketList: [
         { id: 'bl-4-1', title: 'Join a recreational basketball league', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '5',
@@ -253,6 +263,7 @@ export default function App() {
         { id: 'bl-5-1', title: 'Hike the Inca Trail to Machu Picchu', completed: false },
         { id: 'bl-5-2', title: 'Take a photography workshop', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '6',
@@ -269,6 +280,7 @@ export default function App() {
         { id: 'bl-6-1', title: 'Host a neighborhood BBQ', completed: false },
         { id: 'bl-6-2', title: 'Volunteer at the local animal shelter', completed: false },
       ],
+      trend: { direction: 'steady', nudge: 'Last activity 5 days ago' },
     },
     {
       id: '7',
@@ -287,6 +299,7 @@ export default function App() {
         { id: 'bl-7-2', title: 'Go skydiving together', completed: false },
         { id: 'bl-7-3', title: 'Complete a tough mudder race', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 tasks completed this week' },
     },
     {
       id: '8',
@@ -304,6 +317,7 @@ export default function App() {
         { id: 'bl-8-1', title: 'Wine tour through Napa Valley', completed: false },
         { id: 'bl-8-2', title: 'Visit every major art museum in the US', completed: false },
       ],
+      trend: { direction: 'steady', nudge: '1 task completed this month' },
     },
     {
       id: '9',
@@ -320,6 +334,7 @@ export default function App() {
         { id: 'bl-9-1', title: 'Attend New York Fashion Week', completed: false },
         { id: 'bl-9-2', title: 'Start a style blog together', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 4 weeks' },
     },
     {
       id: '10',
@@ -337,6 +352,7 @@ export default function App() {
         { id: 'bl-10-1', title: 'Go to E3 or PAX together', completed: false },
         { id: 'bl-10-2', title: 'See our favorite band live', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '11',
@@ -353,6 +369,7 @@ export default function App() {
         { id: 'bl-11-1', title: 'Take a family vacation to Hawaii', completed: false },
         { id: 'bl-11-2', title: 'Learn grandma\'s secret recipes together', completed: false },
       ],
+      trend: { direction: 'up', nudge: 'Called 3 times this month' },
     },
     {
       id: '12',
@@ -369,6 +386,7 @@ export default function App() {
         { id: 'bl-12-1', title: 'Deep sea fishing trip in Florida', completed: false },
         { id: 'bl-12-2', title: 'Watch a Super Bowl game in person', completed: false },
       ],
+      trend: { direction: 'steady', nudge: 'Last activity 1 week ago' },
     },
     {
       id: '13',
@@ -385,6 +403,7 @@ export default function App() {
         { id: 'bl-13-1', title: 'Sister trip to Paris', completed: false },
         { id: 'bl-13-2', title: 'Do a spa weekend getaway', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '14',
@@ -401,6 +420,7 @@ export default function App() {
         { id: 'bl-14-1', title: 'Go to a World Cup match', completed: false },
         { id: 'bl-14-2', title: 'Complete a co-op video game marathon', completed: false },
       ],
+      trend: { direction: 'steady', nudge: '1 task completed this month' },
     },
     {
       id: '15',
@@ -417,6 +437,7 @@ export default function App() {
         { id: 'bl-15-1', title: 'Record her life stories on video', completed: false },
         { id: 'bl-15-2', title: 'Plant a family garden together', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '16',
@@ -432,6 +453,7 @@ export default function App() {
       bucketList: [
         { id: 'bl-16-1', title: 'Go to a music festival together', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 5 weeks' },
     },
     {
       id: '17',
@@ -449,6 +471,7 @@ export default function App() {
         { id: 'bl-17-1', title: 'Take a Thai cooking class in Bangkok', completed: false },
         { id: 'bl-17-2', title: 'Girls trip to a tropical island', completed: false },
       ],
+      trend: { direction: 'up', nudge: '1 task completed this week' },
     },
     {
       id: '18',
@@ -465,6 +488,7 @@ export default function App() {
         { id: 'bl-18-1', title: 'Yoga retreat in Bali', completed: false },
         { id: 'bl-18-2', title: 'Complete a 30-day meditation challenge', completed: false },
       ],
+      trend: { direction: 'steady', nudge: 'Last activity 4 days ago' },
     },
     // Work group
     {
@@ -483,6 +507,7 @@ export default function App() {
         { id: 'bl-19-1', title: 'Attend a tech conference together', completed: false },
         { id: 'bl-19-2', title: 'Start a side project together', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 lunches together this month' },
     },
     {
       id: '20',
@@ -498,6 +523,7 @@ export default function App() {
       bucketList: [
         { id: 'bl-20-1', title: 'Go to a tech startup meetup', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 2 weeks' },
     },
     {
       id: '21',
@@ -515,6 +541,7 @@ export default function App() {
         { id: 'bl-21-1', title: 'Run a 10K together', completed: false },
         { id: 'bl-21-2', title: 'Visit Japan and eat authentic sushi', completed: false },
       ],
+      trend: { direction: 'up', nudge: '3 tasks completed this month' },
     },
     {
       id: '22',
@@ -530,6 +557,7 @@ export default function App() {
       bucketList: [
         { id: 'bl-22-1', title: 'Tailgate at a football game', completed: false },
       ],
+      trend: { direction: 'steady', nudge: 'Last activity 1 week ago' },
     },
     {
       id: '23',
@@ -547,6 +575,7 @@ export default function App() {
         { id: 'bl-23-1', title: 'Plan a group trip with work friends', completed: false },
         { id: 'bl-23-2', title: 'Try every top-rated restaurant in the city', completed: false },
       ],
+      trend: { direction: 'up', nudge: '1 task completed this week' },
     },
     {
       id: '24',
@@ -562,6 +591,7 @@ export default function App() {
       bucketList: [
         { id: 'bl-24-1', title: 'Attend a hackathon together', completed: false },
       ],
+      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '25',
@@ -578,6 +608,7 @@ export default function App() {
         { id: 'bl-25-1', title: 'Co-author a blog post or talk', completed: false },
         { id: 'bl-25-2', title: 'Hike the Appalachian Trail section', completed: false },
       ],
+      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
   ]);
 

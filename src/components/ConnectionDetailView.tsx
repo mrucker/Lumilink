@@ -69,13 +69,21 @@ export function ConnectionDetailView({ friend, onBack, onToggleTask, onUpdateRel
           </div>
         </div>
 
-        {/* Relationship status indicator */}
-        <div className="mt-2 text-xs text-gray-300">
-          {friend.relationshipStrength >= 80 && 'Strong connection'}
-          {friend.relationshipStrength >= 60 && friend.relationshipStrength < 80 && 'Needs attention'}
-          {friend.relationshipStrength >= 40 && friend.relationshipStrength < 60 && 'Growing connection'}
-          {friend.relationshipStrength < 40 && 'Building connection'}
-        </div>
+        {/* Relationship trend nudge */}
+        {friend.trend && (
+          <div className="mt-2">
+            <span className={`text-xs ${
+              friend.trend.direction === 'up' ? 'text-green-400' :
+              friend.trend.direction === 'down' ? 'text-red-400' :
+              'text-gray-400'
+            }`}>
+              {friend.trend.direction === 'up' && '\u2191 '}
+              {friend.trend.direction === 'down' && '\u2193 '}
+              {friend.trend.direction === 'steady' && '- '}
+              {friend.trend.nudge}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Navigation Tabs */}

@@ -90,24 +90,21 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
           </div>
         </div>
 
-        {/* Relationship status indicator */}
-        <div className="mt-2 text-xs text-[#F5F1E8]/80">
-          {isDesert ? (
-            <>
-              {friend.relationshipStrength >= 80 && 'Thriving relationship'}
-              {friend.relationshipStrength >= 60 && friend.relationshipStrength < 80 && 'Needs attention to stay strong'}
-              {friend.relationshipStrength >= 40 && friend.relationshipStrength < 60 && 'Growing but needs care'}
-              {friend.relationshipStrength < 40 && 'Continue growing relationship'}
-            </>
-          ) : (
-            <>
-              {friend.relationshipStrength >= 80 && 'Thriving relationship'}
-              {friend.relationshipStrength >= 60 && friend.relationshipStrength < 80 && 'Needs attention to stay strong'}
-              {friend.relationshipStrength >= 40 && friend.relationshipStrength < 60 && 'Growing but needs care'}
-              {friend.relationshipStrength < 40 && 'Continue growing relationship'}
-            </>
-          )}
-        </div>
+        {/* Relationship trend nudge */}
+        {friend.trend && (
+          <div className="mt-2">
+            <span className={`text-xs ${
+              friend.trend.direction === 'up' ? 'text-green-300' :
+              friend.trend.direction === 'down' ? 'text-red-300' :
+              'text-[#F5F1E8]/70'
+            }`}>
+              {friend.trend.direction === 'up' && '\u2191 '}
+              {friend.trend.direction === 'down' && '\u2193 '}
+              {friend.trend.direction === 'steady' && '- '}
+              {friend.trend.nudge}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Navigation Tabs */}
