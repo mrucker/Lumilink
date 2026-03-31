@@ -548,8 +548,8 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     accentBg: 'bg-[#4A7C59]',
     accentText: 'text-[#4A7C59]',
     textPrimary: 'text-[#5D4E37]',
-    textSecondary: 'text-[#8B7355]',
-    textTertiary: 'text-[#A0937D]',
+    textSecondary: 'text-[#6B5A42]',
+    textTertiary: 'text-[#7A6D57]',
     progressBar: 'bg-[#4A7C59]',
     progressBarBg: 'bg-[#DEB887]/30',
     border: 'border-[#DEB887]',
@@ -560,7 +560,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     buttonGradient: 'from-[#4A7C59] to-[#5A9B6F]',
     buttonGradientHover: 'hover:from-[#5A9B6F] hover:to-[#4A7C59]',
     checkmarkColor: 'text-[#4A7C59]',
-    circleColor: 'text-[#A0937D]',
+    circleColor: 'text-[#7A6D57]',
   } : {
     bgMain: 'bg-[#F5F1E8]',
     headerGradient: 'from-[#6B8E4E] to-[#5A7B3E]',
@@ -570,7 +570,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     accentText: 'text-[#6B8E4E]',
     textPrimary: 'text-[#5D4E37]',
     textSecondary: 'text-[#7C6F5B]',
-    textTertiary: 'text-[#A0937D]',
+    textTertiary: 'text-[#7A6D57]',
     progressBar: 'bg-[#6B8E4E]',
     progressBarBg: 'bg-[#D4C5B0]',
     border: 'border-[#D4C5B0]',
@@ -581,7 +581,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     buttonGradient: 'from-[#6B8E4E] to-[#5A7B3E]',
     buttonGradientHover: 'hover:from-[#5A7B3E] hover:to-[#6B8E4E]',
     checkmarkColor: 'text-[#6B8E4E]',
-    circleColor: 'text-[#A0937D]',
+    circleColor: 'text-[#7A6D57]',
   };
 
   return (
@@ -595,7 +595,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentTab('tasks')}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-sm ${
               currentTab === 'tasks'
                 ? themeStyles.tabActive + ' shadow-md'
                 : themeStyles.tabInactive
@@ -605,7 +605,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
           </button>
           <button
             onClick={() => setCurrentTab('requests')}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all relative ${
+            className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all shadow-sm relative ${
               currentTab === 'requests'
                 ? themeStyles.tabActive + ' shadow-md'
                 : themeStyles.tabInactive
@@ -857,14 +857,14 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleAcceptRequest(request.id)}
-                      className={`flex-1 px-4 py-2 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-lg text-sm font-medium ${themeStyles.buttonGradientHover} transition-all flex items-center justify-center gap-2`}
+                      className={`flex-1 px-4 py-2 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-lg text-sm font-medium ${themeStyles.buttonGradientHover} transition-all flex items-center justify-center gap-2 shadow-md`}
                     >
                       <Check className="w-4 h-4" />
                       Accept
                     </button>
                     <button
                       onClick={() => handleDeclineRequest(request.id)}
-                      className={`flex-1 px-4 py-2 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-lg text-sm font-medium ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2`}
+                      className={`flex-1 px-4 py-2 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-lg text-sm font-medium ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2 shadow-sm`}
                     >
                       <X className="w-4 h-4" />
                       Decline
@@ -934,7 +934,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                     <button
                       onClick={() => handleNudge(request.id)}
                       disabled={nudgedRequests.has(request.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 shadow-sm ${
                         nudgedRequests.has(request.id)
                           ? `${themeStyles.textTertiary} cursor-not-allowed`
                           : `${themeStyles.accentText} ${themeStyles.cardBgHover}`
@@ -993,13 +993,13 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={capturePhoto}
-                    className={`flex-1 px-4 py-2 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-lg text-sm font-medium`}
+                    className={`flex-1 px-4 py-2 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-lg text-sm font-medium shadow-md`}
                   >
                     Capture
                   </button>
                   <button
                     onClick={stopCamera}
-                    className={`px-4 py-2 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-lg text-sm font-medium`}
+                    className={`px-4 py-2 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-lg text-sm font-medium shadow-sm`}
                   >
                     Cancel
                   </button>
@@ -1023,7 +1023,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
             {/* Photo Upload Buttons */}
             {!memoryPhoto && !showCameraCapture && (
               <div className="grid grid-cols-2 gap-2 mb-4">
-                <label className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl cursor-pointer ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2`}>
+                <label className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl cursor-pointer ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2 shadow-sm`}>
                   <Upload className={`w-4 h-4 ${themeStyles.textPrimary}`} />
                   <span className={`text-sm font-medium ${themeStyles.textPrimary}`}>Upload</span>
                   <input
@@ -1035,7 +1035,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                 </label>
                 <button
                   onClick={startCamera}
-                  className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2`}
+                  className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2 shadow-sm`}
                 >
                   <Camera className={`w-4 h-4 ${themeStyles.textPrimary}`} />
                   <span className={`text-sm font-medium ${themeStyles.textPrimary}`}>Camera</span>
@@ -1067,13 +1067,13 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
             <div className="flex gap-2">
               <button
                 onClick={handleSkipReflection}
-                className={`flex-1 px-4 py-3 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-xl text-sm font-medium ${themeStyles.cardBgHover} transition-all`}
+                className={`flex-1 px-4 py-3 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-xl text-sm font-medium ${themeStyles.cardBgHover} transition-all shadow-sm`}
               >
                 Skip
               </button>
               <button
                 onClick={handleSaveReflection}
-                className={`flex-1 px-4 py-3 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-xl text-sm font-medium ${themeStyles.buttonGradientHover} transition-all`}
+                className={`flex-1 px-4 py-3 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-xl text-sm font-medium ${themeStyles.buttonGradientHover} transition-all shadow-md`}
               >
                 Save
               </button>
@@ -1210,13 +1210,13 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
             <div className="flex gap-2 mb-3">
               <button
                 onClick={selectAllFriendsForTask}
-                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all`}
+                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all shadow-sm`}
               >
                 Select All
               </button>
               <button
                 onClick={deselectAllFriendsForTask}
-                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all`}
+                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all shadow-sm`}
               >
                 Deselect All
               </button>
@@ -1261,7 +1261,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                     <button
                       key={friend.id}
                       onClick={() => toggleFriendSelectionForTask(friend.id)}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 shadow-sm ${
                         isSelected
                           ? `${themeStyles.border} ${themeStyles.cardBgLight}`
                           : 'border-gray-200 hover:border-gray-300'

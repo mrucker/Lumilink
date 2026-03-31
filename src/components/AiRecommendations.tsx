@@ -79,16 +79,16 @@ Respond with ONLY a JSON array of 3 objects, each with "suggestion" (a friendly 
     itemBorder: 'border-[#B0D8E8]/50',
     itemText: 'text-[#2E5C8A]/80',
     accent: '#4A90E2',
-    refreshText: 'text-[#87CEEB]',
+    refreshText: 'text-[#2E7D9B]',
   } : theme === 'desert' ? {
-    text: 'text-[#8B7355]',
+    text: 'text-[#6B5A42]',
     textHover: 'hover:text-[#5D4E37]',
     itemBg: 'bg-[#FFF8E7]/50',
     itemHover: 'hover:bg-[#FFF8E7]',
     itemBorder: 'border-[#DEB887]/50',
     itemText: 'text-[#5D4E37]/80',
     accent: '#4A7C59',
-    refreshText: 'text-[#8B7355]',
+    refreshText: 'text-[#6B5A42]',
   } : {
     text: 'text-[#7C6F5B]',
     textHover: 'hover:text-[#5D4E37]',
@@ -123,7 +123,7 @@ Respond with ONLY a JSON array of 3 objects, each with "suggestion" (a friendly 
 
       {error && (
         <div className="py-2">
-          <p className="text-xs text-red-400 mb-1">{error}</p>
+          <p className="text-xs text-red-600 mb-1">{error}</p>
           <button
             onClick={fetchRecommendations}
             className={`text-xs ${styles.refreshText} hover:opacity-70`}
@@ -139,7 +139,7 @@ Respond with ONLY a JSON array of 3 objects, each with "suggestion" (a friendly 
             <button
               key={index}
               onClick={() => onSuggestionClick?.(item.taskTitle)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-xs ${styles.itemText} ${styles.itemBg} ${styles.itemHover} border ${styles.itemBorder} transition-all cursor-pointer`}
+              className={`w-full text-left px-3 py-2 rounded-lg text-xs shadow-sm ${styles.itemText} ${styles.itemBg} ${styles.itemHover} border ${styles.itemBorder} transition-all cursor-pointer`}
             >
               {item.suggestion}
             </button>

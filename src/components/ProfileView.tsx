@@ -600,9 +600,9 @@ export default function ProfileView({
                     setAvatarGender('girl');
                     setAvatarHairstyle(0); // Reset to first hairstyle
                   }}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${
                     avatarGender === 'girl'
-                      ? 'bg-[#6B8E4E] text-white'
+                      ? 'bg-[#6B8E4E] text-white shadow-md'
                       : 'bg-gray-100 text-[#5D4E37] hover:bg-gray-200'
                   }`}
                 >
@@ -613,9 +613,9 @@ export default function ProfileView({
                     setAvatarGender('boy');
                     setAvatarHairstyle(0); // Reset to first hairstyle
                   }}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all shadow-sm ${
                     avatarGender === 'boy'
-                      ? 'bg-[#6B8E4E] text-white'
+                      ? 'bg-[#6B8E4E] text-white shadow-md'
                       : 'bg-gray-100 text-[#5D4E37] hover:bg-gray-200'
                   }`}
                 >
@@ -700,7 +700,7 @@ export default function ProfileView({
             <h3 className="text-lg font-medium text-center mb-4" style={{ color: themeColors.text }}>This Week's Progress</h3>
             <div className="grid grid-cols-3 gap-4">
               {wellnessTasks.map((task, index) => {
-                const improvement = task.lastWeek - task.count;
+                const change = task.count - task.lastWeek;
                 return (
                   <div key={index} className="text-center">
                     <div className="flex justify-center mb-2">
@@ -708,19 +708,19 @@ export default function ProfileView({
                     </div>
                     <div className="text-3xl font-medium mb-1" style={{ color: themeColors.text }}>{task.count}</div>
                     <div className="text-sm mb-2" style={{ color: themeColors.textLight }}>{task.label}</div>
-                    {improvement > 0 && (
+                    {change > 0 && (
                       <div className="text-xs font-medium" style={{ color: '#6B8E4E' }}>
-                        ↓{improvement} from last week!
+                        ↑{change} from last week!
                       </div>
                     )}
-                    {improvement === 0 && (
+                    {change === 0 && (
                       <div className="text-xs font-medium" style={{ color: themeColors.textLight }}>
                         Same as last week
                       </div>
                     )}
-                    {improvement < 0 && (
-                      <div className="text-xs font-medium" style={{ color: themeColors.textLight }}>
-                        {Math.abs(improvement)} tasks added
+                    {change < 0 && (
+                      <div className="text-xs font-medium" style={{ color: '#D97706' }}>
+                        ↓{Math.abs(change)} from last week
                       </div>
                     )}
                   </div>
@@ -734,7 +734,7 @@ export default function ProfileView({
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
           <button
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="w-full px-6 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+            className="w-full px-6 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <Bell className="w-5 h-5" style={{ color: themeColors.textLight }} />
             <span className="flex-1 text-left font-medium" style={{ color: themeColors.text }}>Notifications</span>
@@ -774,7 +774,7 @@ export default function ProfileView({
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
           <button
             onClick={() => setPrivacyOpen(!privacyOpen)}
-            className="w-full px-6 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+            className="w-full px-6 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <Shield className="w-5 h-5" style={{ color: themeColors.textLight }} />
             <span className="flex-1 text-left font-medium" style={{ color: themeColors.text }}>Privacy & Safety</span>
@@ -843,7 +843,7 @@ export default function ProfileView({
                           <span className="text-sm" style={{ color: themeColors.text }}>{user}</span>
                           <button
                             onClick={() => setBlockedUsers(blockedUsers.filter(u => u !== user))}
-                            className="text-xs hover:opacity-80 px-3 py-1 rounded-full"
+                            className="text-xs hover:opacity-80 px-3 py-1 rounded-full shadow-sm"
                             style={{ 
                               color: themeColors.accent, 
                               border: `1px solid ${themeColors.accent}` 
@@ -919,7 +919,7 @@ export default function ProfileView({
                   }
                 }}
                 disabled={!newBlockName.trim()}
-                className="w-full mt-4 py-3 text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full mt-4 py-3 text-white rounded-xl font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                 style={{ backgroundColor: themeColors.primary }}
               >
                 Block User

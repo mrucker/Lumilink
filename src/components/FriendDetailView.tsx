@@ -46,7 +46,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
       <div className={`bg-gradient-to-br ${headerGradient} px-6 pt-8 pb-4 shadow-lg`}>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-[#F5F1E8] hover:text-white transition-colors mb-3 bg-black/20 pl-3 pr-4 py-1.5 rounded-full -ml-3"
+          className="flex items-center gap-2 text-[#F5F1E8] hover:text-white transition-colors mb-3 bg-black/20 pl-3 pr-4 py-1.5 rounded-full shadow-sm -ml-3"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>{backText}</span>
@@ -94,9 +94,9 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
         {friend.trend && (
           <div className="mt-2">
             <span className={`text-xs ${
-              friend.trend.direction === 'up' ? 'text-green-300' :
-              friend.trend.direction === 'down' ? 'text-red-300' :
-              'text-[#F5F1E8]/70'
+              friend.trend.direction === 'up' ? (isDesert ? 'text-green-700' : 'text-green-300') :
+              friend.trend.direction === 'down' ? (isDesert ? 'text-red-700' : 'text-red-300') :
+              (isDesert ? 'text-[#5D4E37]/70' : 'text-[#F5F1E8]/70')
             }`}>
               {friend.trend.direction === 'up' && '\u2191 '}
               {friend.trend.direction === 'down' && '\u2193 '}
@@ -115,7 +115,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
             className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl transition-all ${
               activeTab === 'tasks'
                 ? `bg-gradient-to-br ${buttonBg} text-white shadow-lg`
-                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0]'
+                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0] shadow-sm'
             }`}
           >
             <ListChecks className="w-5 h-5" />
@@ -127,7 +127,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
             className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl transition-all ${
               activeTab === 'photos'
                 ? `bg-gradient-to-br ${buttonBg} text-white shadow-lg`
-                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0]'
+                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0] shadow-sm'
             }`}
           >
             <Camera className="w-5 h-5" />
@@ -139,7 +139,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
             className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl transition-all ${
               activeTab === 'bucket'
                 ? `bg-gradient-to-br ${buttonBg} text-white shadow-lg`
-                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0]'
+                : 'bg-white text-[#5D4E37] border-2 border-[#D4C5B0] shadow-sm'
             }`}
           >
             <Compass className="w-5 h-5" />
@@ -177,7 +177,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
                     {task.completed ? (
                       <CheckCircle2 className="w-6 h-6 text-[#6B8E4E] flex-shrink-0" />
                     ) : (
-                      <Circle className="w-6 h-6 text-[#A0937D] flex-shrink-0" />
+                      <Circle className="w-6 h-6 text-[#7A6D57] flex-shrink-0" />
                     )}
                     <span
                       className={`flex-1 ${
@@ -225,7 +225,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
           <div className="bg-white rounded-2xl p-5 shadow-lg border-2 border-[#D4C5B0]">
             <h2 className="text-xl text-[#5D4E37] mb-4 text-center">Photo Wall</h2>
             <div className="text-center py-8">
-              <Camera className="w-16 h-16 text-[#A0937D] mx-auto mb-4" />
+              <Camera className="w-16 h-16 text-[#7A6D57] mx-auto mb-4" />
               <p className="text-[#7C6F5B] mb-4">
                 No photos yet. Start building your memory wall together!
               </p>
@@ -251,7 +251,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
                     {item.completed ? (
                       <CheckCircle2 className="w-6 h-6 text-[#6B8E4E] flex-shrink-0" />
                     ) : (
-                      <Circle className="w-6 h-6 text-[#A0937D] flex-shrink-0" />
+                      <Circle className="w-6 h-6 text-[#7A6D57] flex-shrink-0" />
                     )}
                     <span className={`flex-1 ${item.completed ? 'text-[#7C6F5B] line-through' : 'text-[#5D4E37]'}`}>
                       {item.title}
@@ -261,7 +261,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
               </div>
             ) : (
               <div className="text-center py-8">
-                <Compass className="w-16 h-16 text-[#A0937D] mx-auto mb-4" />
+                <Compass className="w-16 h-16 text-[#7A6D57] mx-auto mb-4" />
                 <p className="text-[#7C6F5B] mb-4">
                   No bucket list items yet. Start dreaming up adventures!
                 </p>

@@ -40,9 +40,9 @@ export function SettingsMenu({ theme, onThemeChange }: SettingsMenuProps) {
                     onThemeChange('city');
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all shadow-sm ${
                     theme === 'city'
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-gray-900 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -54,9 +54,9 @@ export function SettingsMenu({ theme, onThemeChange }: SettingsMenuProps) {
                     onThemeChange('garden');
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all shadow-sm ${
                     theme === 'garden'
-                      ? 'bg-[#6B8E4E] text-white'
+                      ? 'bg-[#6B8E4E] text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -68,9 +68,9 @@ export function SettingsMenu({ theme, onThemeChange }: SettingsMenuProps) {
                     onThemeChange('desert');
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all shadow-sm ${
                     theme === 'desert'
-                      ? 'bg-[#4A7C59] text-white'
+                      ? 'bg-[#4A7C59] text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >

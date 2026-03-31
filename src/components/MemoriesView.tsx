@@ -109,7 +109,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
     calendarDayActive: 'bg-[#4A7C59] text-white',
     calendarDayHasMemory: 'bg-[#FFF8E7]',
     textPrimary: 'text-[#5D4E37]',
-    textSecondary: 'text-[#8B7355]',
+    textSecondary: 'text-[#6B5A42]',
   } : {
     bgMain: 'bg-[#F5F1E8]',
     headerGradient: 'from-[#6B8E4E] to-[#5A7B3E]',
@@ -134,7 +134,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
         <div className="flex items-center justify-between">
           <button
             onClick={goToPreviousMonth}
-            className={`p-2 rounded-lg transition-colors ${theme === 'city' ? 'hover:bg-[#E0F2F7]' : theme === 'desert' ? 'hover:bg-[#FFF8E7]' : 'hover:bg-[#F5F1E8]'}`}
+            className={`p-2 rounded-lg transition-colors shadow-sm ${theme === 'city' ? 'hover:bg-[#E0F2F7]' : theme === 'desert' ? 'hover:bg-[#FFF8E7]' : 'hover:bg-[#F5F1E8]'}`}
           >
             <ChevronLeft className={`w-5 h-5 ${themeStyles.textPrimary}`} />
           </button>
@@ -147,7 +147,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
           
           <button
             onClick={goToNextMonth}
-            className={`p-2 rounded-lg transition-colors ${theme === 'city' ? 'hover:bg-[#E0F2F7]' : theme === 'desert' ? 'hover:bg-[#FFF8E7]' : 'hover:bg-[#F5F1E8]'}`}
+            className={`p-2 rounded-lg transition-colors shadow-sm ${theme === 'city' ? 'hover:bg-[#E0F2F7]' : theme === 'desert' ? 'hover:bg-[#FFF8E7]' : 'hover:bg-[#F5F1E8]'}`}
           >
             <ChevronRight className={`w-5 h-5 ${themeStyles.textPrimary}`} />
           </button>
@@ -190,7 +190,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
                       ? `border-2 ${themeStyles.border} ${themeStyles.accentText}`
                       : hasMemories
                       ? `${themeStyles.calendarDayHasMemory} ${themeStyles.textPrimary} ${theme === 'city' ? 'hover:bg-[#B0D8E8]' : theme === 'desert' ? 'hover:bg-[#4A7C59]/10' : 'hover:bg-[#6B8E4E]/20'}`
-                      : `${theme === 'city' ? 'text-[#1B3A5F]/40 hover:bg-[#E0F2F7]' : 'text-[#A0937D] hover:bg-[#F5F1E8]'}`
+                      : `${theme === 'city' ? 'text-[#1B3A5F]/40 hover:bg-[#E0F2F7]' : 'text-[#7A6D57] hover:bg-[#F5F1E8]'}`
                   } ${hasMemories ? 'cursor-pointer' : 'cursor-default'}`}
                   disabled={!hasMemories}
                 >
@@ -311,7 +311,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
                 setShowPhotoModal(false);
                 setSelectedMemory(null);
               }}
-              className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+              className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-colors shadow-sm"
             >
               <X className="w-6 h-6" />
             </button>

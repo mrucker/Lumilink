@@ -32,7 +32,7 @@ export function BottomNav({ currentView, onNavigate, theme = 'city' }: BottomNav
       border: 'border-[#D35400]',
       activeBg: 'bg-[#D35400]',
       activeText: 'text-white',
-      inactiveText: 'text-[#FADBD8] hover:text-white',
+      inactiveText: 'text-white/80 hover:text-white',
       label: 'Beach Oasis',
       icon: Palmtree,
     },
@@ -59,9 +59,9 @@ export function BottomNav({ currentView, onNavigate, theme = 'city' }: BottomNav
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all shadow-sm ${
                 isActive
-                  ? `${currentTheme.activeBg} ${currentTheme.activeText}`
+                  ? `${currentTheme.activeBg} ${currentTheme.activeText} shadow-md`
                   : currentTheme.inactiveText
               }`}
             >

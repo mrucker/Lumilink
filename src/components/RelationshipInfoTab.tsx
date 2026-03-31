@@ -45,7 +45,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
     card: 'bg-white border-2 border-[#B0D8E8]',
     label: 'text-[#2E5C8A]',
     text: 'text-[#2E5C8A]',
-    textLight: 'text-[#87CEEB]',
+    textLight: 'text-[#2E7D9B]',
     tagBg: 'bg-[#E0F2F7]',
     tagText: 'text-[#2E5C8A]',
     inputBorder: 'border-[#B0D8E8]',
@@ -57,7 +57,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
     card: 'bg-white border-2 border-[#DEB887]',
     label: 'text-[#5D4E37]',
     text: 'text-[#5D4E37]',
-    textLight: 'text-[#8B7355]',
+    textLight: 'text-[#6B5A42]',
     tagBg: 'bg-[#FFF8E7]',
     tagText: 'text-[#5D4E37]',
     inputBorder: 'border-[#DEB887]',
@@ -111,7 +111,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
           </div>
           <button
             onClick={() => { setDraft({ ...nature }); setEditing(true); }}
-            className={`p-2 rounded-lg ${styles.tagBg} hover:opacity-80 transition-opacity`}
+            className={`p-2 rounded-lg ${styles.tagBg} hover:opacity-80 transition-opacity shadow-sm`}
           >
             <Edit3 className="w-4 h-4" style={{ color: styles.accent }} />
           </button>
@@ -165,10 +165,10 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
       <div className="flex items-center justify-between mb-4">
         <h2 className={`text-lg ${styles.label}`}>Edit Relationship Info</h2>
         <div className="flex gap-2">
-          <button onClick={handleSave} className={`p-2 rounded-lg ${styles.button} text-white`}>
+          <button onClick={handleSave} className={`p-2 rounded-lg ${styles.button} text-white shadow-md`}>
             <Check className="w-4 h-4" />
           </button>
-          <button onClick={handleCancel} className={`p-2 rounded-lg ${styles.tagBg}`}>
+          <button onClick={handleCancel} className={`p-2 rounded-lg ${styles.tagBg} shadow-sm`}>
             <X className="w-4 h-4" style={{ color: styles.accent }} />
           </button>
         </div>
@@ -183,7 +183,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
               <button
                 key={type}
                 onClick={() => setDraft({ ...draft, type })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shadow-sm ${
                   draft.type === type ? styles.selectedBg : styles.unselectedBg
                 }`}
               >
@@ -225,7 +225,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
               <button
                 key={style}
                 onClick={() => setDraft({ ...draft, communicationStyle: style })}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all shadow-sm ${
                   draft.communicationStyle === style ? styles.selectedBg : styles.unselectedBg
                 }`}
               >
@@ -262,7 +262,7 @@ export function RelationshipInfoTab({ friend, theme, onUpdateRelationshipNature 
             />
             <button
               onClick={addInterest}
-              className={`px-3 py-2 rounded-lg ${styles.button} text-white text-sm`}
+              className={`px-3 py-2 rounded-lg ${styles.button} text-white text-sm shadow-md`}
             >
               Add
             </button>
