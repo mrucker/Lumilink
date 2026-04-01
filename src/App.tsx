@@ -1,4 +1,19 @@
 import { useState } from 'react';
+
+// Helper to create dates relative to today
+function daysAgo(n: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function daysFromNow(n: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 import { CityView } from './components/CityView';
 import { GardenView } from './components/GardenView';
 import { DesertView } from './components/DesertView';
@@ -66,7 +81,7 @@ export default function App() {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [theme, setTheme] = useState<'city' | 'garden' | 'desert'>('city');
-  const [taskPrefill, setTaskPrefill] = useState<{ title: string; friendId: string } | null>(null);
+  const [taskPrefill, setTaskPrefill] = useState<{ title: string; friendId: string; isGroup?: boolean; groupFriendIds?: string[] } | null>(null);
   
   // Icon customization colors - separate for each theme
   const [gardenColors, setGardenColors] = useState({
@@ -89,7 +104,7 @@ export default function App() {
   const [memories, setMemories] = useState<Memory[]>([
     {
       id: 'mem-1',
-      date: new Date(2026, 2, 8), // March 8, 2026
+      date: daysAgo(3),
       friendIds: ['1', '2'], // Sarah, Marcus
       photoUrl: 'https://images.unsplash.com/photo-1623120893483-0e9d83ebbfe1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmllbmRzJTIwY29mZmVlJTIwbGF1Z2hpbmd8ZW58MXx8fHwxNzczMjQwMDI4fDA&ixlib=rb-4.1.0&q=80&w=1080',
       caption: 'Coffee and laughs with Sarah and Marcus ☕️',
@@ -97,7 +112,7 @@ export default function App() {
     },
     {
       id: 'mem-2',
-      date: new Date(2026, 2, 5), // March 5, 2026
+      date: daysAgo(6),
       friendIds: ['3', '5'], // Emma, Lily
       photoUrl: 'https://images.unsplash.com/photo-1650584997985-e713a869ee77?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiaXJ0aGRheSUyMHBhcnR5JTIwY2VsZWJyYXRpb258ZW58MXx8fHwxNzczMjMxMzY0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Emma\'s birthday celebration! 🎉',
@@ -105,7 +120,7 @@ export default function App() {
     },
     {
       id: 'mem-3',
-      date: new Date(2026, 2, 1), // March 1, 2026
+      date: daysAgo(10),
       friendIds: ['7'], // Zoe
       photoUrl: 'https://images.unsplash.com/photo-1603475429038-44361bcde123?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoaWtpbmclMjBtb3VudGFpbiUyMHRyYWlsfGVufDF8fHx8MTc3MzIxNDM3OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Weekend hike with Zoe 🏔️',
@@ -113,7 +128,7 @@ export default function App() {
     },
     {
       id: 'mem-4',
-      date: new Date(2026, 1, 28), // February 28, 2026
+      date: daysAgo(14),
       friendIds: ['8', '9'], // Alex, Mia
       photoUrl: 'https://images.unsplash.com/photo-1629624123501-7595e0193fe0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwZGlubmVyJTIwZnJpZW5kc3xlbnwxfHx8fDE3NzMxMzkxNDl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Dinner with Alex and Mia at new restaurant',
@@ -121,7 +136,7 @@ export default function App() {
     },
     {
       id: 'mem-5',
-      date: new Date(2026, 1, 22), // February 22, 2026
+      date: daysAgo(20),
       friendIds: ['1', '5', '7'], // Sarah, Lily, Zoe
       photoUrl: 'https://images.unsplash.com/photo-1697809311064-c7a3852206ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHN1bnNldCUyMG9jZWFufGVufDF8fHx8MTc3MzIwMTkyN3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Beach sunset with the girls 🌅',
@@ -129,7 +144,7 @@ export default function App() {
     },
     {
       id: 'mem-6',
-      date: new Date(2026, 1, 15), // February 15, 2026
+      date: daysAgo(27),
       friendIds: ['11', '12'], // Mom, Dad
       photoUrl: 'https://images.unsplash.com/photo-1755003842792-9d2b7ad08862?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW1pbHklMjBwaWNuaWMlMjBwYXJrfGVufDF8fHx8MTc3MzI0NDc3Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Family picnic in the park ❤️',
@@ -137,7 +152,7 @@ export default function App() {
     },
     {
       id: 'mem-7',
-      date: new Date(2026, 1, 10), // February 10, 2026
+      date: daysAgo(32),
       friendIds: ['2', '10'], // Marcus, Tyler
       photoUrl: 'https://images.unsplash.com/photo-1630609682318-70047533e3c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYW1lJTIwbmlnaHQlMjBmcmllbmRzfGVufDF8fHx8MTc3MzI0NDc3Nnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Epic game night! 🎮',
@@ -145,7 +160,7 @@ export default function App() {
     },
     {
       id: 'mem-8',
-      date: new Date(2026, 1, 5), // February 5, 2026
+      date: daysAgo(37),
       friendIds: ['8'], // Alex
       photoUrl: 'https://images.unsplash.com/photo-1662049024498-4fbc4468455e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnQlMjBtdXNldW0lMjBnYWxsZXJ5fGVufDF8fHx8MTc3MzE5NDczOHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Art museum with Alex 🎨',
@@ -153,7 +168,7 @@ export default function App() {
     },
     {
       id: 'mem-9',
-      date: new Date(2026, 0, 28), // January 28, 2026
+      date: daysAgo(45),
       friendIds: ['3', '17'], // Emma, Lisa
       photoUrl: 'https://images.unsplash.com/photo-1758520387687-38a92a7ee42f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzaG9wcGluZyUyMG1hbGwlMjBmcmllbmRzfGVufDF8fHx8MTc3MzI0NDc3N3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Shopping spree! 🛍️',
@@ -161,7 +176,7 @@ export default function App() {
     },
     {
       id: 'mem-10',
-      date: new Date(2026, 0, 20), // January 20, 2026
+      date: daysAgo(53),
       friendIds: ['5', '7', '17'], // Lily, Zoe, Lisa
       photoUrl: 'https://images.unsplash.com/photo-1621407808155-770a27217758?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25jZXJ0JTIwbXVzaWMlMjB2ZW51ZXxlbnwxfHx8fDE3NzMyNDQ3Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
       caption: 'Concert night! 🎵',
@@ -179,9 +194,9 @@ export default function App() {
       height: 140,
       category: 'friends',
       tasks: [
-        { id: '1-2', title: 'Grab coffee together', completed: false, date: new Date(2026, 2, 18) },
+        { id: '1-2', title: 'Grab coffee together', completed: false, date: daysFromNow(2) },
         { id: '1-3', title: 'Dinner at the new Italian restaurant', completed: true },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: new Date(2026, 2, 22) },
+        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'College roommate freshman year', sharedInterests: ['hiking', 'cooking', 'travel'], communicationStyle: 'mixed', friendshipSince: '2020' },
       bucketList: [
@@ -199,9 +214,9 @@ export default function App() {
       height: 110,
       category: 'friends',
       tasks: [
-        { id: '2-1', title: 'Game night at his place', completed: false, date: new Date(2026, 2, 21) },
+        { id: '2-1', title: 'Game night at his place', completed: false, date: daysFromNow(5) },
         { id: '2-2', title: 'Grab coffee together', completed: false },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: new Date(2026, 2, 22) },
+        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Study group in college', sharedInterests: ['gaming', 'basketball', 'movies'], communicationStyle: 'texting', friendshipSince: '2021' },
       bucketList: [
@@ -218,9 +233,9 @@ export default function App() {
       height: 155,
       category: 'friends',
       tasks: [
-        { id: '3-2', title: 'Lunch at the food market', completed: false, date: new Date(2026, 2, 17) },
-        { id: '3-3', title: 'Sunday brunch together', completed: false, date: new Date(2026, 2, 23) },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: new Date(2026, 2, 22) },
+        { id: '3-2', title: 'Lunch at the food market', completed: false, date: daysFromNow(1) },
+        { id: '3-3', title: 'Sunday brunch together', completed: false, date: daysFromNow(7) },
+        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'childhood-friend', howMet: 'Neighbors growing up', sharedInterests: ['brunch', 'yoga', 'reading'], communicationStyle: 'mixed', friendshipSince: '2010' },
       bucketList: [
@@ -239,7 +254,7 @@ export default function App() {
       category: 'friends',
       tasks: [
         { id: '4-2', title: 'Grab coffee together', completed: false },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: new Date(2026, 2, 22) },
+        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'hobby-friend', howMet: 'Met at a pickup basketball game', sharedInterests: ['basketball', 'fitness'], communicationStyle: 'texting', friendshipSince: '2024' },
       bucketList: [
@@ -255,8 +270,8 @@ export default function App() {
       height: 125,
       category: 'friends',
       tasks: [
-        { id: '5-1', title: 'Lunch at the new cafe', completed: false, date: new Date(2026, 2, 17) },
-        { id: '5-2', title: 'Hiking at Griffith Park', completed: false, date: new Date(2026, 2, 20) },
+        { id: '5-1', title: 'Lunch at the new cafe', completed: false, date: daysFromNow(1) },
+        { id: '5-2', title: 'Hiking at Griffith Park', completed: false, date: daysFromNow(4) },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Same major in college', sharedInterests: ['hiking', 'photography', 'coffee'], communicationStyle: 'in-person', friendshipSince: '2021' },
       bucketList: [
@@ -273,7 +288,7 @@ export default function App() {
       height: 100,
       category: 'friends',
       tasks: [
-        { id: '6-1', title: 'Grab coffee together', completed: false, date: new Date(2026, 2, 19) },
+        { id: '6-1', title: 'Grab coffee together', completed: false, date: daysFromNow(3) },
       ],
       relationshipNature: { type: 'neighbor', howMet: 'Lives in the same apartment building', sharedInterests: ['cooking', 'dogs'], communicationStyle: 'in-person', friendshipSince: '2023' },
       bucketList: [
@@ -290,7 +305,7 @@ export default function App() {
       height: 145,
       category: 'friends',
       tasks: [
-        { id: '7-1', title: 'Rock climbing at the gym', completed: false, date: new Date(2026, 2, 19) },
+        { id: '7-1', title: 'Rock climbing at the gym', completed: false, date: daysFromNow(3) },
         { id: '7-3', title: 'Watch movie or show together', completed: true },
       ],
       relationshipNature: { type: 'hobby-friend', howMet: 'Met at a rock climbing gym', sharedInterests: ['rock climbing', 'hiking', 'camping'], communicationStyle: 'mixed', friendshipSince: '2022' },
@@ -309,8 +324,8 @@ export default function App() {
       height: 115,
       category: 'friends',
       tasks: [
-        { id: '8-1', title: 'Dinner at the steakhouse', completed: false, date: new Date(2026, 2, 25) },
-        { id: '8-2', title: 'Wine tasting this weekend', completed: false, date: new Date(2026, 2, 22) },
+        { id: '8-1', title: 'Dinner at the steakhouse', completed: false, date: daysFromNow(9) },
+        { id: '8-2', title: 'Wine tasting this weekend', completed: false, date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Lab partner in chemistry', sharedInterests: ['wine', 'food', 'art museums'], communicationStyle: 'texting', friendshipSince: '2020' },
       bucketList: [
@@ -345,7 +360,7 @@ export default function App() {
       category: 'friends',
       tasks: [
         { id: '10-1', title: 'Watch movie or show together', completed: false },
-        { id: '10-2', title: 'Game night this Friday', completed: false, date: new Date(2026, 2, 21) },
+        { id: '10-2', title: 'Game night this Friday', completed: false, date: daysFromNow(5) },
       ],
       relationshipNature: { type: 'childhood-friend', howMet: 'Grew up on the same street', sharedInterests: ['gaming', 'movies', 'music'], communicationStyle: 'calls', friendshipSince: '2008' },
       bucketList: [
@@ -362,7 +377,7 @@ export default function App() {
       height: 160,
       category: 'friends',
       tasks: [
-        { id: '11-2', title: 'Visit for the weekend', completed: false, date: new Date(2026, 2, 29) },
+        { id: '11-2', title: 'Visit for the weekend', completed: false, date: daysFromNow(13) },
       ],
       relationshipNature: { type: 'immediate-family', howMet: 'Family', sharedInterests: ['cooking', 'gardening', 'family dinners'], communicationStyle: 'calls', friendshipSince: 'Always' },
       bucketList: [
@@ -652,8 +667,8 @@ export default function App() {
     }));
   };
 
-  const handleCreateTaskFromRecommendation = (title: string, friendId: string) => {
-    setTaskPrefill({ title, friendId });
+  const handleCreateTaskFromRecommendation = (title: string, friendId: string, isGroup?: boolean, groupFriendIds?: string[]) => {
+    setTaskPrefill({ title, friendId, isGroup, groupFriendIds });
     setSelectedFriend(null);
     setCurrentView('tasks');
   };
@@ -734,9 +749,9 @@ export default function App() {
             {activeFriend ? (
               <>
                 {theme === 'city' ? (
-                  <ConnectionDetailView friend={activeFriend} onBack={handleBackToGarden} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <ConnectionDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 ) : (
-                  <FriendDetailView friend={activeFriend} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <FriendDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 )}
                 <BottomNav currentView={currentView} onNavigate={handleNavClick} theme={theme} />
               </>

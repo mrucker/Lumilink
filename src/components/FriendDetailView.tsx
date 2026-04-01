@@ -8,16 +8,17 @@ import { RelationshipInfoTab } from './RelationshipInfoTab';
 
 interface FriendDetailViewProps {
   friend: Friend;
+  allFriends: Friend[];
   onBack: () => void;
   theme?: 'garden' | 'desert';
   onToggleTask: (friendId: string, taskId: string) => void;
   onUpdateRelationshipNature: (friendId: string, nature: RelationshipNature) => void;
   onToggleBucketItem: (friendId: string, itemId: string) => void;
   onAddTaskToFriend: (friendId: string, task: Task) => void;
-  onCreateTaskFromRecommendation: (title: string, friendId: string) => void;
+  onCreateTaskFromRecommendation: (title: string, friendId: string, isGroup?: boolean, groupFriendIds?: string[]) => void;
 }
 
-export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: FriendDetailViewProps) {
+export function FriendDetailView({ friend, allFriends, onBack, theme = 'garden', onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: FriendDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'tasks' | 'photos' | 'bucket' | 'about'>('tasks');
   const tasks = friend.tasks;
   const bucketList = friend.bucketList || [];
@@ -26,8 +27,8 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
     onToggleTask(friend.id, taskId);
   };
 
-  const handleRecommendationClick = (suggestion: string) => {
-    onCreateTaskFromRecommendation(suggestion, friend.id);
+  const handleRecommendationClick = (suggestion: string, isGroup?: boolean, groupFriendIds?: string[]) => {
+    onCreateTaskFromRecommendation(suggestion, friend.id, isGroup, groupFriendIds);
   };
 
   // Theme-specific colors
@@ -200,7 +201,7 @@ export function FriendDetailView({ friend, onBack, theme = 'garden', onToggleTas
             </div>
 
             {/* Lumilink Recommendations */}
-            <AiRecommendations friend={friend} theme={isDesert ? 'desert' : 'garden'} onSuggestionClick={handleRecommendationClick} />
+            <AiRecommendations friend={friend} allFriends={allFriends} theme={isDesert ? 'desert' : 'garden'} onSuggestionClick={handleRecommendationClick} />
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4">

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Plus, User, Heart, Send, Inbox, Sparkles, X, Check, Bell, Camera, MapPin, Upload, Image, Users, Calendar, Search } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, User, UserPlus, Heart, Send, Inbox, Sparkles, X, Check, Bell, Camera, MapPin, Upload, Image, Users, Calendar, Search } from 'lucide-react';
 import { Friend, Memory } from '../App';
 
 // Helper functions for date formatting
 const formatDate = (date: Date): string => {
-  const today = new Date(2026, 2, 16); // March 16, 2026
-  const tomorrow = new Date(2026, 2, 17);
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
   const dateObj = new Date(date);
-  
+
   // Reset time to midnight for accurate date comparison
   today.setHours(0, 0, 0, 0);
   tomorrow.setHours(0, 0, 0, 0);
@@ -24,7 +25,7 @@ const formatDate = (date: Date): string => {
 };
 
 const getDateUrgency = (date: Date): 'urgent' | 'soon' | 'upcoming' => {
-  const today = new Date(2026, 2, 16);
+  const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dateObj = new Date(date);
   dateObj.setHours(0, 0, 0, 0);
@@ -44,8 +45,14 @@ interface TasksViewProps {
   onToggleTask: (friendId: string, taskId: string) => void;
   onToggleGroupTasks: (friendTaskPairs: { friendId: string; taskId: string }[], completed: boolean) => void;
   onAddTaskToFriend: (friendId: string, task: { id: string; title: string; completed: boolean; groupId?: string; groupName?: string; date?: Date }) => void;
-  taskPrefill?: { title: string; friendId: string } | null;
+  taskPrefill?: { title: string; friendId: string; isGroup?: boolean; groupFriendIds?: string[] } | null;
   onClearPrefill?: () => void;
+}
+
+interface GroupMember {
+  id: string;
+  name: string;
+  isFriend: boolean; // Whether this person is already in the user's friends list
 }
 
 interface TaskRequest {
@@ -61,6 +68,7 @@ interface TaskRequest {
   isGroup?: boolean;
   groupId?: string;
   groupName?: string;
+  groupMembers?: GroupMember[]; // All members in the group (for group requests)
 }
 
 interface GroupedTask {
@@ -74,9 +82,12 @@ interface GroupedTask {
 export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleGroupTasks, onAddTaskToFriend, taskPrefill, onClearPrefill }: TasksViewProps) {
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [currentTab, setCurrentTab] = useState<'tasks' | 'requests'>('tasks');
-  const [showReflectionDialog, setShowReflectionDialog] = useState<{taskId: string, taskTitle: string, friendName: string, friendIds?: string[], isGroup?: boolean} | null>(null);
+  const [showReflectionDialog, setShowReflectionDialog] = useState<{taskId: string, taskTitle: string, friendName: string, friendIds?: string[], isGroup?: boolean, taskDate?: Date} | null>(null);
   const [reflectionText, setReflectionText] = useState('');
+  const [reflectionQuestion, setReflectionQuestion] = useState('');
+  const [usedQuestions, setUsedQuestions] = useState<Set<string>>(new Set());
   const [nudgedRequests, setNudgedRequests] = useState<Set<string>>(new Set());
+  const [sentFriendRequests, setSentFriendRequests] = useState<Set<string>>(new Set());
   
   // Create Task Modal state
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
@@ -99,7 +110,12 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
   useEffect(() => {
     if (taskPrefill) {
       setNewTaskTitle(taskPrefill.title);
-      setSelectedFriendsForTask(new Set([taskPrefill.friendId]));
+      if (taskPrefill.isGroup && taskPrefill.groupFriendIds) {
+        setSelectedFriendsForTask(new Set(taskPrefill.groupFriendIds));
+        setIsGroupActivity(true);
+      } else {
+        setSelectedFriendsForTask(new Set([taskPrefill.friendId]));
+      }
       setShowCreateTaskModal(true);
       onClearPrefill?.();
     }
@@ -114,8 +130,8 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
       toUserId: 'me',
       toUserName: 'You',
       tasks: [
-        { id: 'req-1-1', title: 'Grab coffee at our favorite spot this Saturday', date: new Date(2026, 2, 20) },
-        { id: 'req-1-2', title: 'Check out the new art exhibit downtown', date: new Date(2026, 2, 22) },
+        { id: 'req-1-1', title: 'Grab coffee at our favorite spot this Saturday', date: new Date(Date.now() + 4 * 86400000) },
+        { id: 'req-1-2', title: 'Check out the new art exhibit downtown', date: new Date(Date.now() + 6 * 86400000) },
       ],
       status: 'pending',
       direction: 'incoming'
@@ -127,7 +143,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
       toUserId: 'marcus-id',
       toUserName: 'Marcus',
       tasks: [
-        { id: 'req-2-1', title: 'Host game night at your place', date: new Date(2026, 2, 21) },
+        { id: 'req-2-1', title: 'Host game night at your place', date: new Date(Date.now() + 5 * 86400000) },
         { id: 'req-2-2', title: 'Try that new pizza restaurant' },
       ],
       status: 'pending',
@@ -140,10 +156,31 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
       toUserId: 'me',
       toUserName: 'You',
       tasks: [
-        { id: 'req-3-1', title: 'Hiking trip to Mt. Wilson this weekend', date: new Date(2026, 2, 22) },
+        { id: 'req-3-1', title: 'Hiking trip to Mt. Wilson this weekend', date: new Date(Date.now() + 6 * 86400000) },
       ],
       status: 'pending',
       direction: 'incoming'
+    },
+    {
+      id: 'req-4',
+      fromUserId: '1',
+      fromUserName: 'Sarah',
+      toUserId: 'me',
+      toUserName: 'You',
+      tasks: [
+        { id: 'req-4-1', title: 'Beach volleyball tournament', date: new Date(Date.now() + 8 * 86400000) },
+        { id: 'req-4-2', title: 'Post-game dinner at the boardwalk' },
+      ],
+      status: 'pending',
+      direction: 'incoming',
+      isGroup: true,
+      groupName: 'Beach Crew',
+      groupMembers: [
+        { id: '1', name: 'Sarah', isFriend: true },
+        { id: '4', name: 'Jake', isFriend: true },
+        { id: 'unknown-1', name: 'Rachel Torres', isFriend: false },
+        { id: 'unknown-2', name: 'Danny Kim', isFriend: false },
+      ]
     },
   ]);
 
@@ -235,13 +272,17 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
 
         const friendIds = groupedTask.friends.map(f => f.friend.id);
         const friendNames = groupedTask.friends.map(f => f.friend.name).join(', ');
+        setUsedQuestions(new Set());
+        setReflectionQuestion('');
         setShowReflectionDialog({
           taskId: taskId,
           taskTitle: taskTitle,
           friendName: friendNames,
           friendIds: friendIds,
-          isGroup: true
+          isGroup: true,
+          taskDate: groupedTask.date
         });
+        generateQuestionAI(taskTitle, friendNames);
       } else {
         onToggleGroupTasks(pairs, false);
       }
@@ -252,16 +293,21 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
       const task = friend.tasks.find(t => t.id === taskId);
       if (task && !task.completed) {
         onToggleTask(friend.id, taskId);
-        setShowReflectionDialog({ taskId, taskTitle, friendName });
+        setUsedQuestions(new Set());
+        setReflectionQuestion('');
+        setShowReflectionDialog({ taskId, taskTitle, friendName, taskDate: task.date });
+        generateQuestionAI(taskTitle, friendName);
       } else if (task) {
         onToggleTask(friend.id, taskId);
       }
     }
   };
 
-  const handleSkipReflection = () => {
+  const resetReflectionState = () => {
     setShowReflectionDialog(null);
     setReflectionText('');
+    setReflectionQuestion('');
+    setUsedQuestions(new Set());
     setMemoryPhoto('');
     setMemoryCaption('');
   };
@@ -282,25 +328,34 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
         }
       }
     }
-    setShowReflectionDialog(null);
-    setReflectionText('');
-    setMemoryPhoto('');
-    setMemoryCaption('');
+    resetReflectionState();
   };
 
   const handleSaveReflection = () => {
-    if (showReflectionDialog && (reflectionText || memoryPhoto)) {
-      // Create memory if there's a photo or caption
-      if (memoryPhoto || memoryCaption) {
-        onAddMemory({
-          photoUrl: memoryPhoto,
-          caption: memoryCaption || reflectionText,
-          date: new Date(),
-          friendIds: showReflectionDialog.friendIds || [friends.find(f => f.name === showReflectionDialog.friendName)?.id || '']
-        });
+    if (showReflectionDialog && reflectionText.trim()) {
+      const photoUrl = memoryPhoto || getDefaultImageForTask(showReflectionDialog.taskTitle);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      // If task date is in the future (completed ahead of time), use today
+      let memoryDate = showReflectionDialog.taskDate || today;
+      const taskDateNorm = new Date(memoryDate);
+      taskDateNorm.setHours(0, 0, 0, 0);
+      if (taskDateNorm.getTime() > today.getTime()) {
+        memoryDate = today;
       }
+      const friendIds = showReflectionDialog.friendIds || [friends.find(f => f.name === showReflectionDialog.friendName)?.id || ''];
+
+      const caption = memoryCaption
+        || `${showReflectionDialog.taskTitle}\n\nQ: ${reflectionQuestion}\nA: ${reflectionText.trim()}`;
+
+      onAddMemory({
+        photoUrl,
+        caption,
+        date: memoryDate,
+        friendIds: friendIds.filter(id => id !== '')
+      });
     }
-    handleSkipReflection();
+    resetReflectionState();
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -350,6 +405,83 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     setShowCameraCapture(false);
   };
 
+  // AI-generate a reflection question based on task description, avoiding repeats
+  const [questionLoading, setQuestionLoading] = useState(false);
+
+  const generateQuestionAI = async (taskTitle: string, friendName: string) => {
+    setQuestionLoading(true);
+    try {
+      const avoidList = Array.from(usedQuestions);
+      const avoidClause = avoidList.length > 0
+        ? `\n\nDo NOT use any of these previously asked questions:\n${avoidList.map(q => `- "${q}"`).join('\n')}`
+        : '';
+
+      const prompt = `You are a thoughtful reflection coach in a friendship app. A user just completed a task with their friend(s).
+
+Task: "${taskTitle}"
+Friend(s): ${friendName}
+
+Generate exactly 1 short, warm, open-ended reflection question that helps the user think about this experience and what it meant for their relationship. Keep it casual and conversational — one sentence, no quotes around it.${avoidClause}
+
+Respond with ONLY the question, nothing else.`;
+
+      const res = await fetch('https://api.digital-trails.org/api/v1/lumilink', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 150,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch');
+
+      const data = await res.json();
+      const question = data.content[0].text.trim();
+      setReflectionQuestion(question);
+      setUsedQuestions(prev => new Set([...prev, question]));
+    } catch {
+      // Fallback to a simple question if API fails
+      const fallbacks = [
+        'What made this moment meaningful to you?',
+        'How did spending this time together make you feel?',
+        'What would you want to remember most about this?',
+      ];
+      const available = fallbacks.filter(q => !usedQuestions.has(q));
+      const pool = available.length > 0 ? available : fallbacks;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      setReflectionQuestion(chosen);
+      setUsedQuestions(prev => new Set([...prev, chosen]));
+    } finally {
+      setQuestionLoading(false);
+    }
+  };
+
+  // Get a default image URL based on task description
+  const getDefaultImageForTask = (taskTitle: string): string => {
+    const title = taskTitle.toLowerCase();
+    if (title.includes('coffee') || title.includes('cafe') || title.includes('drink')) {
+      return 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80';
+    } else if (title.includes('hik') || title.includes('walk') || title.includes('trail') || title.includes('outdoor')) {
+      return 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80';
+    } else if (title.includes('game') || title.includes('play') || title.includes('sport')) {
+      return 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=800&q=80';
+    } else if (title.includes('dinner') || title.includes('lunch') || title.includes('eat') || title.includes('food') || title.includes('restaurant') || title.includes('pizza')) {
+      return 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80';
+    } else if (title.includes('movie') || title.includes('show') || title.includes('watch')) {
+      return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80';
+    } else if (title.includes('art') || title.includes('exhibit') || title.includes('museum')) {
+      return 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80';
+    } else if (title.includes('birthday') || title.includes('celebrat') || title.includes('party')) {
+      return 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80';
+    } else if (title.includes('call') || title.includes('chat') || title.includes('text') || title.includes('check in')) {
+      return 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=800&q=80';
+    } else {
+      return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80';
+    }
+  };
+
   const handleAcceptRequest = (requestId: string) => {
     const request = taskRequests.find(r => r.id === requestId);
     if (!request) return;
@@ -384,6 +516,11 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
   const handleNudge = (requestId: string) => {
     setNudgedRequests(prev => new Set([...prev, requestId]));
     // In a real app, this would send a notification
+  };
+
+  const handleSendFriendRequest = (memberId: string) => {
+    setSentFriendRequests(prev => new Set([...prev, memberId]));
+    // In a real app, this would send a relationship request to the user
   };
 
   // Create Task handlers
@@ -846,14 +983,69 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                           </li>
                         ))}
                       </ul>
-                      {request.isGroup && (
+                      {request.isGroup && request.groupMembers && request.groupMembers.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-purple-100">
+                          <p className="text-xs font-medium text-purple-700 mb-1.5 flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            Group Members
+                          </p>
+                          <div className="space-y-1.5">
+                            {request.groupMembers.map(member => {
+                              const isFriend = friends.some(f => f.id === member.id) || member.isFriend;
+                              const requestSent = sentFriendRequests.has(member.id);
+                              return (
+                                <div key={member.id} className={`flex items-center justify-between rounded-lg px-3 py-2 ${
+                                  isFriend
+                                    ? 'bg-green-50 border border-green-200'
+                                    : requestSent
+                                    ? 'bg-blue-50 border border-blue-200'
+                                    : 'bg-orange-50 border border-orange-200'
+                                }`}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                      isFriend ? 'bg-green-200 text-green-700' : requestSent ? 'bg-blue-200 text-blue-600' : 'bg-orange-200 text-orange-700'
+                                    }`}>
+                                      <User className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span className={`text-xs font-medium ${
+                                      isFriend ? 'text-green-800' : requestSent ? 'text-blue-700' : 'text-orange-800'
+                                    }`}>{member.name}</span>
+                                    {isFriend && (
+                                      <span className="text-[10px] text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">Friends</span>
+                                    )}
+                                    {!isFriend && !requestSent && (
+                                      <span className="text-[10px] text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded-full">Not added yet</span>
+                                    )}
+                                  </div>
+                                  {!isFriend && !requestSent && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleSendFriendRequest(member.id); }}
+                                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-semibold transition-colors shadow-sm"
+                                    >
+                                      <UserPlus className="w-3 h-3" />
+                                      Add
+                                    </button>
+                                  )}
+                                  {!isFriend && requestSent && (
+                                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-100 text-blue-600 text-[11px] font-medium">
+                                      <Check className="w-3 h-3" />
+                                      Request Sent
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {request.isGroup && (!request.groupMembers || request.groupMembers.length === 0) && (
                         <p className="text-xs text-purple-600 mt-2">
-                          📍 Group activity with {request.toUserName}
+                          Group activity with {request.toUserName}
                         </p>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleAcceptRequest(request.id)}
@@ -973,9 +1165,25 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
               </button>
             </div>
 
-            <p className={`text-sm mb-4 ${themeStyles.textSecondary}`}>
+            <p className={`text-sm mb-3 ${themeStyles.textSecondary}`}>
               You completed "{showReflectionDialog.taskTitle}" with {showReflectionDialog.friendName}
             </p>
+
+            {/* Reflection Question */}
+            <div className={`p-3 rounded-xl mb-4 ${theme === 'city' ? 'bg-[#E0F2F7]' : theme === 'desert' ? 'bg-[#FFF8E7]' : 'bg-[#F5F1E8]'}`}>
+              {questionLoading ? (
+                <p className={`text-sm ${themeStyles.textSecondary} italic`}>Thinking of a question...</p>
+              ) : (
+                <p className={`text-sm font-medium ${themeStyles.textPrimary}`}>{reflectionQuestion}</p>
+              )}
+              <button
+                onClick={() => generateQuestionAI(showReflectionDialog.taskTitle, showReflectionDialog.friendName)}
+                disabled={questionLoading}
+                className={`text-xs mt-2 ${themeStyles.accentText} font-medium underline disabled:opacity-40`}
+              >
+                {questionLoading ? 'Generating...' : 'Ask a different question'}
+              </button>
+            </div>
 
             {/* Camera Capture View */}
             {showCameraCapture && (
@@ -1020,7 +1228,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
               </div>
             )}
 
-            {/* Photo Upload Buttons */}
+            {/* Photo Upload Buttons (Optional) */}
             {!memoryPhoto && !showCameraCapture && (
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <label className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl cursor-pointer ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2 shadow-sm`}>
@@ -1047,35 +1255,20 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
             <textarea
               value={reflectionText}
               onChange={(e) => setReflectionText(e.target.value)}
-              placeholder="Add a reflection or note about this activity..."
+              placeholder="Write your reflection here..."
               className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
               rows={3}
             />
 
-            {/* Caption (if photo exists) */}
-            {memoryPhoto && (
-              <input
-                type="text"
-                value={memoryCaption}
-                onChange={(e) => setMemoryCaption(e.target.value)}
-                placeholder="Add a caption for this memory..."
-                className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
-              />
-            )}
 
             {/* Action Buttons */}
             <div className="flex gap-2">
               <button
-                onClick={handleSkipReflection}
-                className={`flex-1 px-4 py-3 border-2 ${themeStyles.border} ${themeStyles.textPrimary} rounded-xl text-sm font-medium ${themeStyles.cardBgHover} transition-all shadow-sm`}
-              >
-                Skip
-              </button>
-              <button
                 onClick={handleSaveReflection}
-                className={`flex-1 px-4 py-3 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-xl text-sm font-medium ${themeStyles.buttonGradientHover} transition-all shadow-md`}
+                disabled={!reflectionText.trim()}
+                className={`flex-1 px-4 py-3 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-xl text-sm font-medium ${themeStyles.buttonGradientHover} transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed`}
               >
-                Save
+                Save Reflection
               </button>
             </div>
           </div>
@@ -1188,7 +1381,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
                       type="date"
                       value={taskDate}
                       onChange={(e) => setTaskDate(e.target.value)}
-                      min="2026-03-16"
+                      min={new Date().toISOString().split('T')[0]}
                       className={`w-full p-2 border-2 ${themeStyles.border} rounded-lg focus:outline-none ${themeStyles.focusBorder} text-sm`}
                     />
                   </div>

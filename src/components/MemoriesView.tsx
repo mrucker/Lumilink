@@ -8,8 +8,46 @@ interface MemoriesViewProps {
   theme: 'city' | 'garden' | 'desert';
 }
 
+// Render caption with styled Q&A if it contains the reflection format
+function renderCaption(caption: string, themeStyles: any, compact?: boolean) {
+  const qIdx = caption.indexOf('\n\nQ: ');
+  if (qIdx === -1) {
+    return <span>{caption}</span>;
+  }
+
+  const title = caption.substring(0, qIdx);
+  const rest = caption.substring(qIdx + 2);
+  const aIdx = rest.indexOf('\nA: ');
+  if (aIdx === -1) {
+    return <span>{caption}</span>;
+  }
+
+  const question = rest.substring(2, aIdx); // strip "Q: "
+  const answer = rest.substring(aIdx + 4); // strip "\nA: "
+
+  if (compact) {
+    return (
+      <div>
+        <span className="font-semibold">{title}</span>
+        <p className={`text-xs mt-1 ${themeStyles.textSecondary} italic`}>{question}</p>
+        <p className={`text-sm mt-1 ${themeStyles.textPrimary}`}>{answer}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="font-semibold text-base">{title}</p>
+      <div className={`rounded-lg p-2.5 ${themeStyles.calendarDayHasMemory || 'bg-gray-50'}`}>
+        <p className={`text-xs font-medium ${themeStyles.textSecondary} italic`}>{question}</p>
+        <p className={`text-sm mt-1.5 ${themeStyles.textPrimary}`}>{answer}</p>
+      </div>
+    </div>
+  );
+}
+
 export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 11)); // March 11, 2026 (today)
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
@@ -87,7 +125,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
   }
 
   const selectedDateMemories = selectedDate ? getMemoriesForDate(selectedDate) : [];
-  const today = new Date(2026, 2, 11); // March 11, 2026
+  const today = new Date();
 
   // Theme-based colors
   const themeStyles = theme === 'city' ? {
@@ -264,9 +302,9 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
 
                   {/* Caption */}
                   <div className="p-4 text-left">
-                    <p className={`text-sm ${themeStyles.textPrimary} font-medium mb-1`}>
-                      {memory.caption}
-                    </p>
+                    <div className={`text-sm ${themeStyles.textPrimary} mb-1`}>
+                      {renderCaption(memory.caption, themeStyles, true)}
+                    </div>
                     {memory.location && (
                       <p className={`text-xs ${themeStyles.textSecondary}`}>📍 {memory.location}</p>
                     )}
@@ -331,9 +369,9 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
                 <div className="flex items-start gap-3 mb-3">
                   <Heart className={`w-5 h-5 mt-0.5 flex-shrink-0 ${themeStyles.accentText}`} />
                   <div className="flex-1">
-                    <p className={`text-base font-medium mb-1 ${themeStyles.textPrimary}`}>
-                      {selectedMemory.caption}
-                    </p>
+                    <div className={`mb-1 ${themeStyles.textPrimary}`}>
+                      {renderCaption(selectedMemory.caption, themeStyles)}
+                    </div>
                     <p className={`text-sm ${themeStyles.textSecondary}`}>
                       {selectedMemory.date.toLocaleDateString('default', { 
                         weekday: 'long',

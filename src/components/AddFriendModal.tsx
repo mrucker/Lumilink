@@ -128,7 +128,7 @@ export function AddFriendModal({ onClose, onAdd, existingRelationships, theme }:
           {/* Lumilink ID */}
           <div className="flex flex-col items-center">
             <label className="block text-sm text-gray-700 mb-2 text-center w-full font-medium">
-              SkyLink ID
+              Lumilink ID
             </label>
             <input
               type="text"
