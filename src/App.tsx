@@ -25,6 +25,7 @@ import { SettingsMenu } from './components/SettingsMenu';
 import { TasksView } from './components/TasksView';
 import { MemoriesView } from './components/MemoriesView';
 import ProfileView from './components/ProfileView';
+import { ReflectionDialog } from './components/ReflectionDialog';
 
 export interface RelationshipNature {
   type: 'school-friend' | 'childhood-friend' | 'work-colleague' | 'immediate-family' | 'extended-family' | 'neighbor' | 'online-friend' | 'hobby-friend' | 'other';
@@ -82,6 +83,7 @@ export default function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [theme, setTheme] = useState<'city' | 'garden' | 'desert'>('city');
   const [taskPrefill, setTaskPrefill] = useState<{ title: string; friendId: string; isGroup?: boolean; groupFriendIds?: string[] } | null>(null);
+  const [detailReflection, setDetailReflection] = useState<{ taskId: string; taskTitle: string; friendId: string; friendName: string; taskDate?: Date } | null>(null);
   
   // Icon customization colors - separate for each theme
   const [gardenColors, setGardenColors] = useState({
@@ -639,6 +641,22 @@ export default function App() {
     }));
   };
 
+  const handleDetailViewToggleTask = (friendId: string, taskId: string) => {
+    const friend = friends.find(f => f.id === friendId);
+    if (!friend) return;
+    const task = friend.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (!task.completed) {
+      // Completing a task — toggle it and show reflection overlay (no navigation)
+      handleToggleTask(friendId, taskId);
+      setDetailReflection({ taskId, taskTitle: task.title, friendId, friendName: friend.name, taskDate: task.date });
+    } else {
+      // Unchecking — just toggle directly
+      handleToggleTask(friendId, taskId);
+    }
+  };
+
   const handleToggleGroupTasks = (friendTaskPairs: { friendId: string; taskId: string }[], completed: boolean) => {
     setFriends(prev => prev.map(friend => {
       const pairsForFriend = friendTaskPairs.filter(p => p.friendId === friend.id);
@@ -749,9 +767,9 @@ export default function App() {
             {activeFriend ? (
               <>
                 {theme === 'city' ? (
-                  <ConnectionDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <ConnectionDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 ) : (
-                  <FriendDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <FriendDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 )}
                 <BottomNav currentView={currentView} onNavigate={handleNavClick} theme={theme} />
               </>
@@ -815,6 +833,27 @@ export default function App() {
               onAdd={handleAddFriend}
               existingRelationships={existingRelationships}
               theme={theme}
+            />
+          )}
+
+          {/* Reflection Dialog (overlay from detail view task completion) */}
+          {detailReflection && (
+            <ReflectionDialog
+              taskId={detailReflection.taskId}
+              taskTitle={detailReflection.taskTitle}
+              friendName={detailReflection.friendName}
+              taskDate={detailReflection.taskDate}
+              theme={theme}
+              friendIds={[detailReflection.friendId]}
+              onSave={(memory) => {
+                handleAddMemory(memory);
+                setDetailReflection(null);
+              }}
+              onCancel={() => {
+                // Undo the task completion
+                handleToggleTask(detailReflection.friendId, detailReflection.taskId);
+                setDetailReflection(null);
+              }}
             />
           )}
         </div>
