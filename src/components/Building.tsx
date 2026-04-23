@@ -5,166 +5,147 @@ interface BuildingProps {
 }
 
 export function Building({ color, height, relationshipStrength }: BuildingProps) {
-  // Determine building style based on relationship strength
-  const getBuildingStyle = () => {
-    if (relationshipStrength >= 80) {
-      // Skyscraper - tall and modern
-      return 'skyscraper';
-    } else if (relationshipStrength >= 60) {
-      // Office building - medium height
-      return 'office';
-    } else if (relationshipStrength >= 40) {
-      // Small building - developing
-      return 'small';
-    } else {
-      // Construction site - just starting
-      return 'construction';
-    }
+  const buildingHeight = Math.min(Math.max(height, 30), 90);
+
+  // Neutral at 50%, dimmer below, brighter above
+  // 0% → 0.4, 50% → 0.7, 100% → 1.0
+  const brightness = relationshipStrength <= 50
+    ? 0.4 + (relationshipStrength / 50) * 0.3
+    : 0.7 + ((relationshipStrength - 50) / 50) * 0.3;
+  // Halo intensity: 0 below 50, ramps up 50→100
+  const haloIntensity = relationshipStrength > 50
+    ? (relationshipStrength - 50) / 50
+    : 0;
+
+  // Window count scales with strength — accelerates at higher values so strong buildings look full
+  const baseWindows = Math.max(0, Math.floor((relationshipStrength - 20) / 3));
+  const bonusWindows = relationshipStrength > 70 ? Math.floor((relationshipStrength - 70) / 5) * 2 : 0;
+  const totalWindows = baseWindows + bonusWindows;
+
+  // Window sizes per column count
+  const windowSizeForCols = (cols: number) =>
+    cols <= 1 ? 10 : cols === 2 ? 8 : cols === 3 ? 7 : 6;
+
+  // Calculate how many rows actually fit given a column count
+  const verticalPadding = 10; // top (2px) + bottom (8px)
+  const rowGap = 4;
+  const maxRowsForCols = (cols: number) => {
+    const ws = windowSizeForCols(cols);
+    return Math.max(1, Math.floor((buildingHeight - verticalPadding + rowGap) / (ws + rowGap)));
   };
 
-  const style = getBuildingStyle();
-  const buildingHeight = Math.max(height, 30);
+  // Start with 1 column and see if we need more
+  let columns = 0;
+  let maxRowsPerCol = maxRowsForCols(1);
+  if (totalWindows > 0) {
+    columns = 1;
+    // Keep adding columns if windows overflow the available rows
+    while (columns < 4 && totalWindows > maxRowsPerCol * columns) {
+      columns++;
+      maxRowsPerCol = maxRowsForCols(columns);
+    }
+  }
 
-  // Darken the color based on relationship strength - weaker relationships are duller
-  const adjustColor = (hex: string, strength: number) => {
+  const rows = columns > 0 ? Math.min(maxRowsPerCol, Math.ceil(totalWindows / columns)) : 0;
+  const windowSize = windowSizeForCols(columns);
+
+  // All buildings same width
+  const buildingWidth = 42;
+
+  // Colors dim/brighten with strength
+  const adjustColor = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    
-    // Higher strength = more vibrant (0.7-0.9 range)
-    // Lower strength = duller (0.4-0.6 range)
-    const vibrancy = strength >= 60 ? 0.7 + (strength / 100) * 0.2 : 0.4 + (strength / 100) * 0.3;
-    
-    return `rgb(${Math.floor(r * vibrancy)}, ${Math.floor(g * vibrancy)}, ${Math.floor(b * vibrancy)})`;
+    const v = 0.3 + brightness * 0.55;
+    return `rgb(${Math.floor(r * v)}, ${Math.floor(g * v)}, ${Math.floor(b * v)})`;
   };
 
-  const darkenColor = (hex: string, strength: number) => {
+  const darkenColor = (hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
-    
-    const darkness = strength >= 60 ? 0.6 : 0.35;
-    return `rgb(${Math.floor(r * darkness)}, ${Math.floor(g * darkness)}, ${Math.floor(b * darkness)})`;
+    const d = 0.15 + brightness * 0.4;
+    return `rgb(${Math.floor(r * d)}, ${Math.floor(g * d)}, ${Math.floor(b * d)})`;
   };
 
-  // Window brightness based on relationship strength
-  const getWindowStyle = (strength: number) => {
-    if (strength >= 80) {
-      return {
-        color: 'bg-amber-300',
-        opacity: 'opacity-90',
-        glow: true
-      };
-    } else if (strength >= 60) {
-      return {
-        color: 'bg-amber-200',
-        opacity: 'opacity-70',
-        glow: false
-      };
-    } else if (strength >= 40) {
-      return {
-        color: 'bg-amber-100',
-        opacity: 'opacity-50',
-        glow: false
-      };
-    } else {
-      return {
-        color: 'bg-gray-400',
-        opacity: 'opacity-30',
-        glow: false
-      };
-    }
-  };
-
-  const windowStyle = getWindowStyle(relationshipStrength);
-  const mainColor = adjustColor(color, relationshipStrength);
-  const accentColor = darkenColor(color, relationshipStrength);
+  const mainColor = adjustColor(color);
+  const accentColor = darkenColor(color);
+  const windowOpacity = relationshipStrength <= 50
+    ? 0.3 + (relationshipStrength / 50) * 0.3
+    : 0.6 + ((relationshipStrength - 50) / 50) * 0.4;
+  const windowGlow = relationshipStrength > 50;
+  const isConstruction = totalWindows === 0;
 
   return (
     <div className="flex flex-col items-center">
-      {/* Building structure */}
       <div
         className="relative"
         style={{
-          width: '32px',
+          width: `${buildingWidth}px`,
           height: `${buildingHeight}px`,
+          transition: 'width 0.8s ease-out, height 0.8s ease-out',
         }}
       >
         {/* Main building body */}
         <div
-          className="absolute bottom-0 w-full rounded-t shadow-xl"
+          className="absolute bottom-0 w-full rounded-t shadow-xl overflow-hidden"
           style={{
             height: `${buildingHeight}px`,
             background: `linear-gradient(to right, ${accentColor}, ${mainColor})`,
             border: `1px solid ${accentColor}`,
             borderBottom: 'none',
-            filter: relationshipStrength < 60 ? 'saturate(0.6)' : 'none',
+            boxShadow: haloIntensity > 0
+              ? `0 0 ${6 + haloIntensity * 14}px rgba(251, 191, 36, ${haloIntensity * 0.4}), 0 0 ${2 + haloIntensity * 6}px rgba(251, 191, 36, ${haloIntensity * 0.2})`
+              : 'none',
+            transition: 'height 0.8s ease-out, box-shadow 0.8s ease-out',
           }}
         >
-          {/* Windows pattern based on style */}
-          {style === 'skyscraper' && (
-            <div className="absolute inset-0 p-1 flex flex-col gap-1">
-              {Array.from({ length: Math.floor(buildingHeight / 12) }).map((_, i) => (
-                <div key={i} className="flex gap-1 justify-around">
-                  <div 
-                    className={`w-1.5 h-1.5 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`}
-                    style={{
-                      boxShadow: windowStyle.glow ? '0 0 4px rgba(251, 191, 36, 0.6)' : 'none'
-                    }}
-                  />
-                  <div 
-                    className={`w-1.5 h-1.5 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`}
-                    style={{
-                      boxShadow: windowStyle.glow ? '0 0 4px rgba(251, 191, 36, 0.6)' : 'none'
-                    }}
-                  />
-                  <div 
-                    className={`w-1.5 h-1.5 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`}
-                    style={{
-                      boxShadow: windowStyle.glow ? '0 0 4px rgba(251, 191, 36, 0.6)' : 'none'
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {style === 'office' && (
-            <div className="absolute inset-0 p-1 flex flex-col gap-1.5">
-              {Array.from({ length: Math.floor(buildingHeight / 14) }).map((_, i) => (
-                <div key={i} className="flex gap-2 justify-around">
-                  <div className={`w-2 h-2 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`} />
-                  <div className={`w-2 h-2 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {style === 'small' && (
-            <div className="absolute inset-0 p-1 flex flex-col gap-2">
-              {Array.from({ length: Math.floor(buildingHeight / 16) }).map((_, i) => (
-                <div key={i} className="flex gap-2 justify-center">
-                  <div className={`w-2.5 h-2.5 rounded-[1px] ${windowStyle.color} ${windowStyle.opacity}`} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {style === 'construction' && (
+          {isConstruction ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-full h-full border-2 border-dashed border-white/30 rounded-t flex items-center justify-center">
-                <div className="text-xs text-white/60">...</div>
-              </div>
+              <div className="w-full h-full border-2 border-dashed border-white/20 rounded-t" />
+            </div>
+          ) : (
+            <div
+              className="absolute bottom-0 left-0 right-0 flex flex-col-reverse items-center"
+              style={{ padding: '2px 4px 8px 4px', gap: `${rowGap}px` }}
+            >
+              {Array.from({ length: rows }).map((_, r) => (
+                <div key={r} className="flex justify-evenly" style={{ gap: columns === 2 ? '6px' : columns >= 3 ? '3px' : '0px' }}>
+                  {Array.from({ length: columns }).map((_, c) => {
+                    // Column-major fill from bottom up
+                    const idx = c * maxRowsPerCol + r;
+                    return idx < totalWindows ? (
+                      <div
+                        key={c}
+                        className="rounded-[1px] bg-amber-300"
+                        style={{
+                          width: `${windowSize}px`,
+                          height: `${windowSize}px`,
+                          opacity: windowOpacity,
+                          boxShadow: windowGlow
+                            ? `0 0 ${4 + haloIntensity * 6}px rgba(251, 191, 36, ${0.2 + haloIntensity * 0.6})`
+                            : 'none',
+                          transition: 'all 0.8s ease-out',
+                        }}
+                      />
+                    ) : (
+                      <div
+                        key={c}
+                        style={{ width: `${windowSize}px`, height: `${windowSize}px`, opacity: 0 }}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
 
-          {/* Rooftop */}
-          {style !== 'construction' && (
+          {/* Rooftop accent */}
+          {!isConstruction && (
             <div
               className="absolute -top-1 left-0 right-0 h-1 rounded-t"
-              style={{
-                background: accentColor,
-              }}
+              style={{ background: accentColor }}
             />
           )}
         </div>

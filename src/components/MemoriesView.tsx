@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, X, Heart } from 'lucide-react';
 import { Friend, Memory } from '../App';
 
+const ENJOYMENT_EMOJIS = ['\uD83D\uDE10', '\uD83D\uDE42', '\uD83D\uDE0A', '\uD83D\uDE04', '\uD83E\uDD29'];
+
 interface MemoriesViewProps {
   friends: Friend[];
   memories: Memory[];
@@ -9,7 +11,7 @@ interface MemoriesViewProps {
 }
 
 // Render caption with styled Q&A if it contains the reflection format
-function renderCaption(caption: string, themeStyles: any, compact?: boolean) {
+function renderCaption(caption: string, themeStyles: any, compact?: boolean, enjoymentRating?: number) {
   const qIdx = caption.indexOf('\n\nQ: ');
   if (qIdx === -1) {
     return <span>{caption}</span>;
@@ -25,10 +27,15 @@ function renderCaption(caption: string, themeStyles: any, compact?: boolean) {
   const question = rest.substring(2, aIdx); // strip "Q: "
   const answer = rest.substring(aIdx + 4); // strip "\nA: "
 
+  const ratingEmoji = enjoymentRating ? ENJOYMENT_EMOJIS[Math.min(enjoymentRating - 1, 4)] : null;
+
   if (compact) {
     return (
       <div>
-        <span className="font-semibold">{title}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">{title}</span>
+          {ratingEmoji && <span className="text-base">{ratingEmoji}</span>}
+        </div>
         <p className={`text-xs mt-1 ${themeStyles.textSecondary} italic`}>{question}</p>
         <p className={`text-sm mt-1 ${themeStyles.textPrimary}`}>{answer}</p>
       </div>
@@ -37,7 +44,10 @@ function renderCaption(caption: string, themeStyles: any, compact?: boolean) {
 
   return (
     <div className="space-y-2">
-      <p className="font-semibold text-base">{title}</p>
+      <div className="flex items-center gap-2">
+        <p className="font-semibold text-base">{title}</p>
+        {ratingEmoji && <span className="text-lg">{ratingEmoji}</span>}
+      </div>
       <div className={`rounded-lg p-2.5 ${themeStyles.calendarDayHasMemory || 'bg-gray-50'}`}>
         <p className={`text-xs font-medium ${themeStyles.textSecondary} italic`}>{question}</p>
         <p className={`text-sm mt-1.5 ${themeStyles.textPrimary}`}>{answer}</p>
@@ -303,7 +313,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
                   {/* Caption */}
                   <div className="p-4 text-left">
                     <div className={`text-sm ${themeStyles.textPrimary} mb-1`}>
-                      {renderCaption(memory.caption, themeStyles, true)}
+                      {renderCaption(memory.caption, themeStyles, true, memory.enjoymentRating)}
                     </div>
                     {memory.location && (
                       <p className={`text-xs ${themeStyles.textSecondary}`}>📍 {memory.location}</p>
@@ -370,7 +380,7 @@ export function MemoriesView({ friends, memories, theme }: MemoriesViewProps) {
                   <Heart className={`w-5 h-5 mt-0.5 flex-shrink-0 ${themeStyles.accentText}`} />
                   <div className="flex-1">
                     <div className={`mb-1 ${themeStyles.textPrimary}`}>
-                      {renderCaption(selectedMemory.caption, themeStyles)}
+                      {renderCaption(selectedMemory.caption, themeStyles, false, selectedMemory.enjoymentRating)}
                     </div>
                     <p className={`text-sm ${themeStyles.textSecondary}`}>
                       {selectedMemory.date.toLocaleDateString('default', { 

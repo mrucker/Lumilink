@@ -6,3 +6,13 @@
 @layer base {
   html, body, #root { min-height: 100vh; height: 100%; margin: 0; }
 }
+
+@keyframes bud-glow {
+  0%, 100% { box-shadow: 0 0 3px currentColor; }
+  50% { box-shadow: 0 0 10px currentColor, 0 0 16px currentColor; }
+}
+
+.cactus-bud-pulse {
+  color: inherit;
+  animation: bud-glow 2s ease-in-out infinite;
+}

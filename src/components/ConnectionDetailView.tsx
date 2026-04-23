@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus } from 'lucide-react';
-import { Friend, RelationshipNature, Task, BucketListItem } from '../App';
+import { Friend, RelationshipNature, Task, BucketListItem, Memory, getRelationshipTrend } from '../App';
 import { Building } from './Building';
 import { AiRecommendations } from './AiRecommendations';
 import { RelationshipInfoTab } from './RelationshipInfoTab';
@@ -8,6 +8,7 @@ import { RelationshipInfoTab } from './RelationshipInfoTab';
 interface ConnectionDetailViewProps {
   friend: Friend;
   allFriends: Friend[];
+  memories: Memory[];
   onBack: () => void;
   onToggleTask: (friendId: string, taskId: string) => void;
   onUpdateRelationshipNature: (friendId: string, nature: RelationshipNature) => void;
@@ -16,7 +17,7 @@ interface ConnectionDetailViewProps {
   onCreateTaskFromRecommendation: (title: string, friendId: string, isGroup?: boolean, groupFriendIds?: string[]) => void;
 }
 
-export function ConnectionDetailView({ friend, allFriends, onBack, onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: ConnectionDetailViewProps) {
+export function ConnectionDetailView({ friend, allFriends, memories, onBack, onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: ConnectionDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'tasks' | 'photos' | 'bucket' | 'about'>('tasks');
   const tasks = friend.tasks;
   const bucketList = friend.bucketList || [];
@@ -40,51 +41,31 @@ export function ConnectionDetailView({ friend, allFriends, onBack, onToggleTask,
           <ArrowLeft className="w-5 h-5" />
           <span>Back to City</span>
         </button>
-        <h1 className="text-2xl text-white font-medium">{friend.name}</h1>
+        <div className="flex items-end justify-between mt-1">
+          {/* Left side: name + trend nudge */}
+          <div className="flex flex-col gap-1.5 pb-2">
+            <h1 className="text-2xl text-white font-medium">{friend.name}</h1>
+            {(() => {
+              const trend = getRelationshipTrend(friend.id, friend.relationshipNature?.type, memories);
+              return (
+                <span className={`text-xs font-medium ${
+                  trend.isHealthy ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {trend.count} task{trend.count !== 1 ? 's' : ''} completed {trend.windowLabel}
+                </span>
+              );
+            })()}
+          </div>
 
-        {/* Building and progress bar container */}
-        <div className="mt-3 flex items-center gap-3">
-          {/* Small building display */}
-          <div className="flex-shrink-0">
+          {/* Right side: large building */}
+          <div className="flex-shrink-0 mb-2 mr-6" style={{ transform: 'scale(1.5)', transformOrigin: 'bottom center' }}>
             <Building
               color={friend.color}
-              height={friend.height * 0.35}
+              height={friend.height * 0.6}
               relationshipStrength={friend.relationshipStrength}
             />
           </div>
-
-          {/* Progress bar */}
-          <div className="flex-1 flex items-center gap-3">
-            <div className="flex-1 h-3 bg-gray-700 rounded-full overflow-hidden shadow-inner">
-              <div
-                className="h-full rounded-full transition-all shadow-lg"
-                style={{
-                  width: `${friend.relationshipStrength}%`,
-                  background: `linear-gradient(90deg, ${friend.color} 0%, ${friend.color}dd 100%)`,
-                }}
-              />
-            </div>
-            <span className="text-sm text-white font-medium px-2.5 py-1 bg-white/10 rounded-full">
-              {friend.relationshipStrength}%
-            </span>
-          </div>
         </div>
-
-        {/* Relationship trend nudge */}
-        {friend.trend && (
-          <div className="mt-2">
-            <span className={`text-xs ${
-              friend.trend.direction === 'up' ? 'text-green-400' :
-              friend.trend.direction === 'down' ? 'text-red-400' :
-              'text-gray-400'
-            }`}>
-              {friend.trend.direction === 'up' && '\u2191 '}
-              {friend.trend.direction === 'down' && '\u2193 '}
-              {friend.trend.direction === 'steady' && '- '}
-              {friend.trend.nudge}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Navigation Tabs */}

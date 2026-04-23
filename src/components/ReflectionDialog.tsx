@@ -8,10 +8,18 @@ interface ReflectionDialogProps {
   friendName: string;
   taskDate?: Date;
   theme: 'city' | 'garden' | 'desert';
-  onSave: (memory: Omit<Memory, 'id'>, friendIds: string[]) => void;
+  onSave: (memory: Omit<Memory, 'id'>, friendIds: string[], enjoymentRating: number) => void;
   onCancel: () => void;
   friendIds: string[];
 }
+
+const ENJOYMENT_EMOJIS = [
+  { emoji: '\uD83D\uDE10', label: 'Meh' },
+  { emoji: '\uD83D\uDE42', label: 'Okay' },
+  { emoji: '\uD83D\uDE0A', label: 'Nice' },
+  { emoji: '\uD83D\uDE04', label: 'Great' },
+  { emoji: '\uD83E\uDD29', label: 'Amazing' },
+];
 
 const getDefaultImageForTask = (taskTitle: string): string => {
   const title = taskTitle.toLowerCase();
@@ -44,6 +52,7 @@ export function ReflectionDialog({ taskTitle, friendName, taskDate, theme, onSav
   const [memoryPhoto, setMemoryPhoto] = useState('');
   const [showCameraCapture, setShowCameraCapture] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [enjoymentRating, setEnjoymentRating] = useState(3); // 1-5, default middle
 
   const generateQuestionAI = async () => {
     setQuestionLoading(true);
@@ -115,7 +124,7 @@ Respond with ONLY the question, nothing else.`;
       caption,
       date: memoryDate,
       friendIds: friendIds.filter(id => id !== '')
-    }, friendIds);
+    }, friendIds, enjoymentRating);
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,7 +214,28 @@ Respond with ONLY the question, nothing else.`;
           You completed "{taskTitle}" with {friendName}
         </p>
 
-        {/* Reflection Question */}
+        {/* 1. Enjoyment Rating */}
+        <div className="mb-4">
+          <p className={`text-sm font-medium ${themeStyles.textPrimary} mb-2`}>How was it?</p>
+          <div className="flex justify-between gap-1">
+            {ENJOYMENT_EMOJIS.map((item, i) => (
+              <button
+                key={i}
+                onClick={() => setEnjoymentRating(i + 1)}
+                className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all ${
+                  enjoymentRating === i + 1
+                    ? `${themeStyles.questionBg} ring-2 ring-offset-1 ${theme === 'city' ? 'ring-[#1B3A5F]' : theme === 'desert' ? 'ring-[#4A7C59]' : 'ring-[#6B8E4E]'} scale-110`
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-xl">{item.emoji}</span>
+                <span className={`text-[10px] ${enjoymentRating === i + 1 ? themeStyles.textPrimary + ' font-semibold' : themeStyles.textSecondary}`}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Reflection Question */}
         <div className={`p-3 rounded-xl mb-4 ${themeStyles.questionBg}`}>
           {questionLoading ? (
             <p className={`text-sm ${themeStyles.textSecondary} italic`}>Thinking of a question...</p>
@@ -221,7 +251,16 @@ Respond with ONLY the question, nothing else.`;
           </button>
         </div>
 
-        {/* Camera Capture View */}
+        {/* 3. Reflection Text */}
+        <textarea
+          value={reflectionText}
+          onChange={(e) => setReflectionText(e.target.value)}
+          placeholder="Write your reflection here..."
+          className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
+          rows={3}
+        />
+
+        {/* 4. Photo (optional, at bottom) */}
         {showCameraCapture && (
           <div className="mb-4 relative">
             <video
@@ -247,7 +286,6 @@ Respond with ONLY the question, nothing else.`;
           </div>
         )}
 
-        {/* Photo Preview */}
         {memoryPhoto && !showCameraCapture && (
           <div className="mb-4 relative">
             <img src={memoryPhoto} alt="Memory" className="w-full rounded-xl" />
@@ -260,7 +298,6 @@ Respond with ONLY the question, nothing else.`;
           </div>
         )}
 
-        {/* Photo Upload Buttons (Optional) */}
         {!memoryPhoto && !showCameraCapture && (
           <div className="grid grid-cols-2 gap-2 mb-4">
             <label className={`px-4 py-3 border-2 ${themeStyles.border} rounded-xl cursor-pointer ${themeStyles.cardBgHover} transition-all flex items-center justify-center gap-2 shadow-sm`}>
@@ -277,15 +314,6 @@ Respond with ONLY the question, nothing else.`;
             </button>
           </div>
         )}
-
-        {/* Reflection Text */}
-        <textarea
-          value={reflectionText}
-          onChange={(e) => setReflectionText(e.target.value)}
-          placeholder="Write your reflection here..."
-          className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
-          rows={3}
-        />
 
         {/* Save Button */}
         <div className="flex gap-2">

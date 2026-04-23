@@ -38,9 +38,17 @@ const getDateUrgency = (date: Date): 'urgent' | 'soon' | 'upcoming' => {
   return 'upcoming';
 };
 
+const ENJOYMENT_EMOJIS = [
+  { emoji: '\uD83D\uDE10', label: 'Meh' },
+  { emoji: '\uD83D\uDE42', label: 'Okay' },
+  { emoji: '\uD83D\uDE0A', label: 'Nice' },
+  { emoji: '\uD83D\uDE04', label: 'Great' },
+  { emoji: '\uD83E\uDD29', label: 'Amazing' },
+];
+
 interface TasksViewProps {
   friends: Friend[];
-  onAddMemory: (memory: Omit<Memory, 'id'>) => void;
+  onReflectionComplete: (memory: Omit<Memory, 'id'>, friendIds: string[], enjoymentRating: number) => void;
   theme: 'city' | 'garden' | 'desert';
   onToggleTask: (friendId: string, taskId: string) => void;
   onToggleGroupTasks: (friendTaskPairs: { friendId: string; taskId: string }[], completed: boolean) => void;
@@ -79,7 +87,7 @@ interface GroupedTask {
   date?: Date;
 }
 
-export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleGroupTasks, onAddTaskToFriend, taskPrefill, onClearPrefill }: TasksViewProps) {
+export function TasksView({ friends, onReflectionComplete, theme, onToggleTask, onToggleGroupTasks, onAddTaskToFriend, taskPrefill, onClearPrefill }: TasksViewProps) {
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [currentTab, setCurrentTab] = useState<'tasks' | 'requests'>('tasks');
   const [showReflectionDialog, setShowReflectionDialog] = useState<{taskId: string, taskTitle: string, friendName: string, friendIds?: string[], isGroup?: boolean, taskDate?: Date} | null>(null);
@@ -105,6 +113,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
   const [memoryCaption, setMemoryCaption] = useState('');
   const [showCameraCapture, setShowCameraCapture] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [enjoymentRating, setEnjoymentRating] = useState(3);
   
   // Handle prefill from Lumilink Recommendations
   useEffect(() => {
@@ -243,12 +252,6 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
 
   const groupedTasks = getGroupedTasks();
 
-  // Calculate stats
-  const allRelationshipTasks = friends.flatMap(friend => friend.tasks);
-  const completedTasks = allRelationshipTasks.filter(t => t.completed).length;
-  const totalTasks = allRelationshipTasks.length;
-  const completionRate = Math.round((completedTasks / totalTasks) * 100) || 0;
-
   const incomingRequests = taskRequests.filter(r => r.direction === 'incoming' && r.status === 'pending');
   const outgoingRequests = taskRequests.filter(r => r.direction === 'outgoing' && r.status === 'pending');
 
@@ -310,6 +313,7 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
     setUsedQuestions(new Set());
     setMemoryPhoto('');
     setMemoryCaption('');
+    setEnjoymentRating(3);
   };
 
   const handleCancelReflection = () => {
@@ -348,12 +352,12 @@ export function TasksView({ friends, onAddMemory, theme, onToggleTask, onToggleG
       const caption = memoryCaption
         || `${showReflectionDialog.taskTitle}\n\nQ: ${reflectionQuestion}\nA: ${reflectionText.trim()}`;
 
-      onAddMemory({
+      onReflectionComplete({
         photoUrl,
         caption,
         date: memoryDate,
         friendIds: friendIds.filter(id => id !== '')
-      });
+      }, friendIds.filter(id => id !== ''), enjoymentRating);
     }
     resetReflectionState();
   };
@@ -761,20 +765,6 @@ Respond with ONLY the question, nothing else.`;
       {/* My Tasks View */}
       {currentTab === 'tasks' && (
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {/* Progress Overview */}
-          <div className={`bg-white rounded-xl shadow-md border-2 ${themeStyles.border} p-4`}>
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-sm font-medium ${themeStyles.textPrimary}`}>Overall Progress</span>
-              <span className={`text-sm font-medium ${themeStyles.accentText}`}>{completedTasks}/{totalTasks}</span>
-            </div>
-            <div className={`h-2 rounded-full overflow-hidden ${themeStyles.progressBarBg}`}>
-              <div
-                className={`h-full rounded-full transition-all ${themeStyles.progressBar}`}
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-          </div>
-
           {/* Create Task Button */}
           <button
             onClick={() => setShowCreateTaskModal(true)}
@@ -1169,7 +1159,28 @@ Respond with ONLY the question, nothing else.`;
               You completed "{showReflectionDialog.taskTitle}" with {showReflectionDialog.friendName}
             </p>
 
-            {/* Reflection Question */}
+            {/* 1. Enjoyment Rating */}
+            <div className="mb-4">
+              <p className={`text-sm font-medium ${themeStyles.textPrimary} mb-2`}>How was it?</p>
+              <div className="flex justify-between gap-1">
+                {ENJOYMENT_EMOJIS.map((item, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setEnjoymentRating(i + 1)}
+                    className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-xl transition-all ${
+                      enjoymentRating === i + 1
+                        ? `${theme === 'city' ? 'bg-[#E0F2F7] ring-[#1B3A5F]' : theme === 'desert' ? 'bg-[#FFF8E7] ring-[#4A7C59]' : 'bg-[#F5F1E8] ring-[#6B8E4E]'} ring-2 ring-offset-1 scale-110`
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-xl">{item.emoji}</span>
+                    <span className={`text-[10px] ${enjoymentRating === i + 1 ? themeStyles.textPrimary + ' font-semibold' : themeStyles.textSecondary}`}>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Reflection Question */}
             <div className={`p-3 rounded-xl mb-4 ${theme === 'city' ? 'bg-[#E0F2F7]' : theme === 'desert' ? 'bg-[#FFF8E7]' : 'bg-[#F5F1E8]'}`}>
               {questionLoading ? (
                 <p className={`text-sm ${themeStyles.textSecondary} italic`}>Thinking of a question...</p>
@@ -1185,7 +1196,16 @@ Respond with ONLY the question, nothing else.`;
               </button>
             </div>
 
-            {/* Camera Capture View */}
+            {/* 3. Reflection Text */}
+            <textarea
+              value={reflectionText}
+              onChange={(e) => setReflectionText(e.target.value)}
+              placeholder="Write your reflection here..."
+              className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
+              rows={3}
+            />
+
+            {/* 4. Camera Capture View */}
             {showCameraCapture && (
               <div className="mb-4 relative">
                 <video
@@ -1250,15 +1270,6 @@ Respond with ONLY the question, nothing else.`;
                 </button>
               </div>
             )}
-
-            {/* Reflection Text */}
-            <textarea
-              value={reflectionText}
-              onChange={(e) => setReflectionText(e.target.value)}
-              placeholder="Write your reflection here..."
-              className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
-              rows={3}
-            />
 
 
             {/* Action Buttons */}

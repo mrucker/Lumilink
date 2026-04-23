@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus } from 'lucide-react';
-import { Friend, RelationshipNature, Task, BucketListItem } from '../App';
+import { Friend, RelationshipNature, Task, BucketListItem, Memory, getRelationshipTrend } from '../App';
 import { Flower } from './Flower';
 import { DesertPlant } from './DesertPlant';
 import { AiRecommendations } from './AiRecommendations';
@@ -9,6 +9,7 @@ import { RelationshipInfoTab } from './RelationshipInfoTab';
 interface FriendDetailViewProps {
   friend: Friend;
   allFriends: Friend[];
+  memories: Memory[];
   onBack: () => void;
   theme?: 'garden' | 'desert';
   onToggleTask: (friendId: string, taskId: string) => void;
@@ -18,7 +19,7 @@ interface FriendDetailViewProps {
   onCreateTaskFromRecommendation: (title: string, friendId: string, isGroup?: boolean, groupFriendIds?: string[]) => void;
 }
 
-export function FriendDetailView({ friend, allFriends, onBack, theme = 'garden', onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: FriendDetailViewProps) {
+export function FriendDetailView({ friend, allFriends, memories, onBack, theme = 'garden', onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: FriendDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'tasks' | 'photos' | 'bucket' | 'about'>('tasks');
   const tasks = friend.tasks;
   const bucketList = friend.bucketList || [];
@@ -52,60 +53,42 @@ export function FriendDetailView({ friend, allFriends, onBack, theme = 'garden',
           <ArrowLeft className="w-5 h-5" />
           <span>{backText}</span>
         </button>
-        <h1 className="text-2xl text-[#F5F1E8]">{friend.name}</h1>
+        <div className="flex items-end justify-between mt-1">
+          {/* Left side: name + trend nudge */}
+          <div className="flex flex-col gap-1.5 pb-2">
+            <h1 className="text-2xl text-[#F5F1E8]">{friend.name}</h1>
+            {(() => {
+              const trend = getRelationshipTrend(friend.id, friend.relationshipNature?.type, memories);
+              return (
+                <span className={`text-xs font-medium ${
+                  trend.isHealthy
+                    ? (isDesert ? 'text-green-700' : 'text-green-300')
+                    : (isDesert ? 'text-red-700' : 'text-red-300')
+                }`}>
+                  {trend.count} task{trend.count !== 1 ? 's' : ''} completed {trend.windowLabel}
+                </span>
+              );
+            })()}
+          </div>
 
-        {/* Plant/Flower and progress bar container */}
-        <div className="mt-3 flex items-center gap-3">
-          {/* Small plant/flower display */}
-          <div className="flex-shrink-0">
+          {/* Right side: large flower/plant */}
+          <div className="flex-shrink-0 mb-2 mr-6" style={{ transform: 'scale(1.5)', transformOrigin: 'bottom center' }}>
             {isDesert ? (
               <DesertPlant
                 color={friend.color}
-                height={friend.height * 0.35}
+                height={friend.height * 0.6}
                 relationshipStrength={friend.relationshipStrength}
                 showShadow={false}
               />
             ) : (
               <Flower
                 color={friend.color}
-                height={friend.height * 0.35}
+                height={friend.height * 0.6}
                 relationshipStrength={friend.relationshipStrength}
               />
             )}
           </div>
-
-          {/* Progress bar */}
-          <div className="flex-1 flex items-center gap-3">
-            <div className={`flex-1 h-3 ${isDesert ? 'bg-[#C9AE8F]' : 'bg-[#5A4735]'} rounded-full overflow-hidden shadow-inner`}>
-              <div
-                className="h-full rounded-full transition-all shadow-lg"
-                style={{
-                  width: `${friend.relationshipStrength}%`,
-                  background: `linear-gradient(90deg, ${friend.color} 0%, ${friend.color}dd 100%)`,
-                }}
-              />
-            </div>
-            <span className={`text-sm text-[#F5F1E8] font-medium px-2 py-1 ${isDesert ? 'bg-[#C9AE8F]/50' : 'bg-[#5A4735]/50'} rounded-full`}>
-              {friend.relationshipStrength}%
-            </span>
-          </div>
         </div>
-
-        {/* Relationship trend nudge */}
-        {friend.trend && (
-          <div className="mt-2">
-            <span className={`text-xs ${
-              friend.trend.direction === 'up' ? (isDesert ? 'text-green-700' : 'text-green-300') :
-              friend.trend.direction === 'down' ? (isDesert ? 'text-red-700' : 'text-red-300') :
-              (isDesert ? 'text-[#5D4E37]/70' : 'text-[#F5F1E8]/70')
-            }`}>
-              {friend.trend.direction === 'up' && '\u2191 '}
-              {friend.trend.direction === 'down' && '\u2193 '}
-              {friend.trend.direction === 'steady' && '- '}
-              {friend.trend.nudge}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Navigation Tabs */}

@@ -11,7 +11,7 @@ export function Planter({ title, friends, onFlowerClick }: PlanterProps) {
   return (
     <div className="mb-12 w-full max-w-[340px]">
       {/* Planter container with wood texture */}
-      <div className="relative rounded-3xl shadow-2xl overflow-visible">
+      <div className="relative rounded-3xl shadow-2xl overflow-hidden">
         {/* Metal Plaque Label - positioned on top of planter */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
           <div className="relative">

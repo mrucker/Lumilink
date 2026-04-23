@@ -11,7 +11,7 @@ export function CityBlock({ title, friends, onBuildingClick }: CityBlockProps) {
   return (
     <div className="mb-12 w-full max-w-[340px]">
       {/* City block container */}
-      <div className="relative rounded-xl shadow-xl overflow-visible">
+      <div className="relative rounded-xl shadow-xl overflow-hidden">
         {/* Street sign label */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
           <div className="relative">

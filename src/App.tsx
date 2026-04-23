@@ -41,11 +41,6 @@ export interface BucketListItem {
   completed: boolean;
 }
 
-export interface RelationshipTrend {
-  direction: 'up' | 'down' | 'steady';
-  nudge: string;
-}
-
 export interface Friend {
   id: string;
   name: string;
@@ -56,7 +51,45 @@ export interface Friend {
   tasks: Task[];
   relationshipNature?: RelationshipNature;
   bucketList?: BucketListItem[];
-  trend?: RelationshipTrend;
+}
+
+// Each relationship type has a different expected interaction cadence.
+// { tasksNeeded, windowMonths } — "healthy" = tasksNeeded tasks in the last windowMonths months
+const HEALTH_THRESHOLDS: Record<string, { tasksNeeded: number; windowMonths: number }> = {
+  'immediate-family':  { tasksNeeded: 3, windowMonths: 1 },   // close family — frequent
+  'childhood-friend':  { tasksNeeded: 2, windowMonths: 1 },
+  'school-friend':     { tasksNeeded: 2, windowMonths: 1 },
+  'work-colleague':    { tasksNeeded: 2, windowMonths: 2 },
+  'hobby-friend':      { tasksNeeded: 2, windowMonths: 2 },
+  'neighbor':          { tasksNeeded: 1, windowMonths: 3 },
+  'online-friend':     { tasksNeeded: 1, windowMonths: 3 },
+  'extended-family':   { tasksNeeded: 1, windowMonths: 6 },
+  'other':             { tasksNeeded: 2, windowMonths: 2 },
+};
+
+// Compute trend: count tasks in the relationship-appropriate window and determine health
+export function getRelationshipTrend(
+  friendId: string,
+  relationshipType: string | undefined,
+  memories: Memory[],
+): { count: number; isHealthy: boolean; windowLabel: string } {
+  const { tasksNeeded, windowMonths } = HEALTH_THRESHOLDS[relationshipType || 'other']
+    || HEALTH_THRESHOLDS['other'];
+
+  const now = new Date();
+  const windowStart = new Date(now.getFullYear(), now.getMonth() - windowMonths, now.getDate());
+
+  const count = memories.filter(m =>
+    m.friendIds.includes(friendId) && m.date >= windowStart
+  ).length;
+
+  const windowLabel = windowMonths === 1
+    ? 'this month'
+    : windowMonths <= 3
+    ? `last ${windowMonths} months`
+    : `last ${windowMonths} months`;
+
+  return { count, isHealthy: count >= tasksNeeded, windowLabel };
 }
 
 export interface Task {
@@ -68,6 +101,29 @@ export interface Task {
   date?: Date; // Optional date for the task
 }
 
+// Growth amount varies by relationship type — less frequent relationships
+// get more growth per interaction (it takes more effort to maintain them)
+const GROWTH_BY_RELATIONSHIP: Record<string, number> = {
+  'extended-family': 6,
+  'neighbor': 5,
+  'online-friend': 5,
+  'work-colleague': 4,
+  'hobby-friend': 4,
+  'school-friend': 3,
+  'childhood-friend': 3,
+  'immediate-family': 2,
+  'other': 4,
+};
+
+export function calculateGrowth(
+  relationshipType: string | undefined,
+): { strengthDelta: number; heightDelta: number } {
+  const base = GROWTH_BY_RELATIONSHIP[relationshipType || 'other'] || 4;
+  // Height grows proportionally (roughly 1.5px per strength point)
+  const heightDelta = Math.round(base * 1.5);
+  return { strengthDelta: base, heightDelta };
+}
+
 export interface Memory {
   id: string;
   date: Date;
@@ -75,6 +131,7 @@ export interface Memory {
   photoUrl: string;
   caption: string;
   location?: string;
+  enjoymentRating?: number; // 1-5
 }
 
 export default function App() {
@@ -191,9 +248,9 @@ export default function App() {
     {
       id: '1',
       name: 'Sarah',
-      relationshipStrength: 85,
+      relationshipStrength: 72,
       color: '#E87EA1',
-      height: 140,
+      height: 120,
       category: 'friends',
       tasks: [
         { id: '1-2', title: 'Grab coffee together', completed: false, date: daysFromNow(2) },
@@ -206,14 +263,13 @@ export default function App() {
         { id: 'bl-1-2', title: 'Take a cooking class in Italy', completed: false },
         { id: 'bl-1-3', title: 'Run a half marathon together', completed: false },
       ],
-      trend: { direction: 'up', nudge: '3 tasks completed this month' },
     },
     {
       id: '2',
       name: 'Marcus',
-      relationshipStrength: 65,
+      relationshipStrength: 50,
       color: '#FFB347',
-      height: 110,
+      height: 95,
       category: 'friends',
       tasks: [
         { id: '2-1', title: 'Game night at his place', completed: false, date: daysFromNow(5) },
@@ -225,14 +281,13 @@ export default function App() {
         { id: 'bl-2-1', title: 'Attend an NBA Finals game', completed: false },
         { id: 'bl-2-2', title: 'Build a gaming PC together', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 2 weeks' },
     },
     {
       id: '3',
       name: 'Emma',
-      relationshipStrength: 92,
+      relationshipStrength: 93,
       color: '#A78BFA',
-      height: 155,
+      height: 150,
       category: 'friends',
       tasks: [
         { id: '3-2', title: 'Lunch at the food market', completed: false, date: daysFromNow(1) },
@@ -245,14 +300,13 @@ export default function App() {
         { id: 'bl-3-2', title: 'Start a book club together', completed: true },
         { id: 'bl-3-3', title: 'Learn pottery together', completed: false },
       ],
-      trend: { direction: 'up', nudge: '4 tasks completed this month' },
     },
     {
       id: '4',
       name: 'Jake',
-      relationshipStrength: 35,
+      relationshipStrength: 28,
       color: '#FCD34D',
-      height: 85,
+      height: 70,
       category: 'friends',
       tasks: [
         { id: '4-2', title: 'Grab coffee together', completed: false },
@@ -262,14 +316,13 @@ export default function App() {
       bucketList: [
         { id: 'bl-4-1', title: 'Join a recreational basketball league', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '5',
       name: 'Lily',
-      relationshipStrength: 78,
+      relationshipStrength: 62,
       color: '#F472B6',
-      height: 125,
+      height: 105,
       category: 'friends',
       tasks: [
         { id: '5-1', title: 'Lunch at the new cafe', completed: false, date: daysFromNow(1) },
@@ -280,14 +333,13 @@ export default function App() {
         { id: 'bl-5-1', title: 'Hike the Inca Trail to Machu Picchu', completed: false },
         { id: 'bl-5-2', title: 'Take a photography workshop', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '6',
       name: 'David',
-      relationshipStrength: 48,
+      relationshipStrength: 38,
       color: '#FB923C',
-      height: 100,
+      height: 80,
       category: 'friends',
       tasks: [
         { id: '6-1', title: 'Grab coffee together', completed: false, date: daysFromNow(3) },
@@ -297,14 +349,13 @@ export default function App() {
         { id: 'bl-6-1', title: 'Host a neighborhood BBQ', completed: false },
         { id: 'bl-6-2', title: 'Volunteer at the local animal shelter', completed: false },
       ],
-      trend: { direction: 'steady', nudge: 'Last activity 5 days ago' },
     },
     {
       id: '7',
       name: 'Zoe',
-      relationshipStrength: 88,
+      relationshipStrength: 75,
       color: '#EC4899',
-      height: 145,
+      height: 120,
       category: 'friends',
       tasks: [
         { id: '7-1', title: 'Rock climbing at the gym', completed: false, date: daysFromNow(3) },
@@ -316,14 +367,13 @@ export default function App() {
         { id: 'bl-7-2', title: 'Go skydiving together', completed: false },
         { id: 'bl-7-3', title: 'Complete a tough mudder race', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 tasks completed this week' },
     },
     {
       id: '8',
       name: 'Alex',
-      relationshipStrength: 70,
+      relationshipStrength: 55,
       color: '#FBBF24',
-      height: 115,
+      height: 95,
       category: 'friends',
       tasks: [
         { id: '8-1', title: 'Dinner at the steakhouse', completed: false, date: daysFromNow(9) },
@@ -334,14 +384,13 @@ export default function App() {
         { id: 'bl-8-1', title: 'Wine tour through Napa Valley', completed: false },
         { id: 'bl-8-2', title: 'Visit every major art museum in the US', completed: false },
       ],
-      trend: { direction: 'steady', nudge: '1 task completed this month' },
     },
     {
       id: '9',
       name: 'Mia',
-      relationshipStrength: 62,
+      relationshipStrength: 45,
       color: '#F97316',
-      height: 105,
+      height: 85,
       category: 'friends',
       tasks: [
         { id: '9-1', title: 'Shopping at the mall', completed: false },
@@ -351,14 +400,13 @@ export default function App() {
         { id: 'bl-9-1', title: 'Attend New York Fashion Week', completed: false },
         { id: 'bl-9-2', title: 'Start a style blog together', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 4 weeks' },
     },
     {
       id: '10',
       name: 'Tyler',
-      relationshipStrength: 75,
+      relationshipStrength: 60,
       color: '#C084FC',
-      height: 120,
+      height: 100,
       category: 'friends',
       tasks: [
         { id: '10-1', title: 'Watch movie or show together', completed: false },
@@ -369,14 +417,13 @@ export default function App() {
         { id: 'bl-10-1', title: 'Go to E3 or PAX together', completed: false },
         { id: 'bl-10-2', title: 'See our favorite band live', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '11',
       name: 'Mom',
-      relationshipStrength: 95,
+      relationshipStrength: 92,
       color: '#E879F9',
-      height: 160,
+      height: 150,
       category: 'friends',
       tasks: [
         { id: '11-2', title: 'Visit for the weekend', completed: false, date: daysFromNow(13) },
@@ -386,14 +433,13 @@ export default function App() {
         { id: 'bl-11-1', title: 'Take a family vacation to Hawaii', completed: false },
         { id: 'bl-11-2', title: 'Learn grandma\'s secret recipes together', completed: false },
       ],
-      trend: { direction: 'up', nudge: 'Called 3 times this month' },
     },
     {
       id: '12',
       name: 'Dad',
-      relationshipStrength: 90,
+      relationshipStrength: 68,
       color: '#FB7185',
-      height: 150,
+      height: 110,
       category: 'friends',
       tasks: [
         { id: '12-2', title: 'Fishing at the lake', completed: false },
@@ -403,14 +449,13 @@ export default function App() {
         { id: 'bl-12-1', title: 'Deep sea fishing trip in Florida', completed: false },
         { id: 'bl-12-2', title: 'Watch a Super Bowl game in person', completed: false },
       ],
-      trend: { direction: 'steady', nudge: 'Last activity 1 week ago' },
     },
     {
       id: '13',
       name: 'Sister',
-      relationshipStrength: 88,
+      relationshipStrength: 70,
       color: '#F472B6',
-      height: 145,
+      height: 115,
       category: 'friends',
       tasks: [
         { id: '13-2', title: 'Brunch this Sunday', completed: false },
@@ -420,14 +465,13 @@ export default function App() {
         { id: 'bl-13-1', title: 'Sister trip to Paris', completed: false },
         { id: 'bl-13-2', title: 'Do a spa weekend getaway', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
     {
       id: '14',
       name: 'Brother',
-      relationshipStrength: 82,
+      relationshipStrength: 58,
       color: '#FBBF24',
-      height: 135,
+      height: 100,
       category: 'friends',
       tasks: [
         { id: '14-1', title: 'Play online game together', completed: true },
@@ -437,14 +481,13 @@ export default function App() {
         { id: 'bl-14-1', title: 'Go to a World Cup match', completed: false },
         { id: 'bl-14-2', title: 'Complete a co-op video game marathon', completed: false },
       ],
-      trend: { direction: 'steady', nudge: '1 task completed this month' },
     },
     {
       id: '15',
       name: 'Grandma',
-      relationshipStrength: 52,
+      relationshipStrength: 40,
       color: '#D8B4FE',
-      height: 155,
+      height: 80,
       category: 'friends',
       tasks: [
         { id: '15-2', title: 'Visit this weekend', completed: false },
@@ -454,14 +497,13 @@ export default function App() {
         { id: 'bl-15-1', title: 'Record her life stories on video', completed: false },
         { id: 'bl-15-2', title: 'Plant a family garden together', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '16',
       name: 'Maya',
       relationshipStrength: 25,
       color: '#FCD34D',
-      height: 115,
+      height: 60,
       category: 'friends',
       tasks: [
         { id: '16-1', title: 'Catch up over drinks', completed: false },
@@ -470,14 +512,13 @@ export default function App() {
       bucketList: [
         { id: 'bl-16-1', title: 'Go to a music festival together', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 5 weeks' },
     },
     {
       id: '17',
       name: 'Lisa',
-      relationshipStrength: 76,
+      relationshipStrength: 65,
       color: '#FDA4AF',
-      height: 125,
+      height: 108,
       category: 'friends',
       tasks: [
         { id: '17-1', title: 'Lunch at the Thai place', completed: false },
@@ -488,14 +529,13 @@ export default function App() {
         { id: 'bl-17-1', title: 'Take a Thai cooking class in Bangkok', completed: false },
         { id: 'bl-17-2', title: 'Girls trip to a tropical island', completed: false },
       ],
-      trend: { direction: 'up', nudge: '1 task completed this week' },
     },
     {
       id: '18',
       name: 'Amy',
-      relationshipStrength: 68,
+      relationshipStrength: 48,
       color: '#F0ABFC',
-      height: 110,
+      height: 88,
       category: 'friends',
       tasks: [
         { id: '18-2', title: 'Yoga class together', completed: false },
@@ -505,15 +545,14 @@ export default function App() {
         { id: 'bl-18-1', title: 'Yoga retreat in Bali', completed: false },
         { id: 'bl-18-2', title: 'Complete a 30-day meditation challenge', completed: false },
       ],
-      trend: { direction: 'steady', nudge: 'Last activity 4 days ago' },
     },
     // Work group
     {
       id: '19',
       name: 'Jennifer',
-      relationshipStrength: 72,
+      relationshipStrength: 56,
       color: '#A78BFA',
-      height: 118,
+      height: 95,
       category: 'work',
       tasks: [
         { id: '19-1', title: 'Grab coffee together', completed: false },
@@ -524,14 +563,13 @@ export default function App() {
         { id: 'bl-19-1', title: 'Attend a tech conference together', completed: false },
         { id: 'bl-19-2', title: 'Start a side project together', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 lunches together this month' },
     },
     {
       id: '20',
       name: 'Michael',
-      relationshipStrength: 55,
+      relationshipStrength: 35,
       color: '#FB923C',
-      height: 108,
+      height: 75,
       category: 'work',
       tasks: [
         { id: '20-1', title: 'Happy hour after work', completed: false },
@@ -540,14 +578,13 @@ export default function App() {
       bucketList: [
         { id: 'bl-20-1', title: 'Go to a tech startup meetup', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 2 weeks' },
     },
     {
       id: '21',
       name: 'Rachel',
-      relationshipStrength: 80,
+      relationshipStrength: 67,
       color: '#F472B6',
-      height: 130,
+      height: 110,
       category: 'work',
       tasks: [
         { id: '21-1', title: 'Lunch at the sushi place', completed: false },
@@ -558,14 +595,13 @@ export default function App() {
         { id: 'bl-21-1', title: 'Run a 10K together', completed: false },
         { id: 'bl-21-2', title: 'Visit Japan and eat authentic sushi', completed: false },
       ],
-      trend: { direction: 'up', nudge: '3 tasks completed this month' },
     },
     {
       id: '22',
       name: 'Tom',
-      relationshipStrength: 42,
+      relationshipStrength: 30,
       color: '#FBBF24',
-      height: 100,
+      height: 68,
       category: 'work',
       tasks: [
         { id: '22-1', title: 'Team lunch this Friday', completed: false },
@@ -574,14 +610,13 @@ export default function App() {
       bucketList: [
         { id: 'bl-22-1', title: 'Tailgate at a football game', completed: false },
       ],
-      trend: { direction: 'steady', nudge: 'Last activity 1 week ago' },
     },
     {
       id: '23',
       name: 'Nina',
-      relationshipStrength: 75,
+      relationshipStrength: 52,
       color: '#E87EA1',
-      height: 122,
+      height: 90,
       category: 'work',
       tasks: [
         { id: '23-1', title: 'Dinner at the steakhouse', completed: false },
@@ -592,14 +627,13 @@ export default function App() {
         { id: 'bl-23-1', title: 'Plan a group trip with work friends', completed: false },
         { id: 'bl-23-2', title: 'Try every top-rated restaurant in the city', completed: false },
       ],
-      trend: { direction: 'up', nudge: '1 task completed this week' },
     },
     {
       id: '24',
       name: 'Chris',
-      relationshipStrength: 30,
+      relationshipStrength: 26,
       color: '#FFB347',
-      height: 105,
+      height: 60,
       category: 'work',
       tasks: [
         { id: '24-1', title: 'Coffee chat next week', completed: false },
@@ -608,14 +642,13 @@ export default function App() {
       bucketList: [
         { id: 'bl-24-1', title: 'Attend a hackathon together', completed: false },
       ],
-      trend: { direction: 'down', nudge: 'No activity in 3 weeks' },
     },
     {
       id: '25',
       name: 'Sophia',
-      relationshipStrength: 85,
+      relationshipStrength: 91,
       color: '#C084FC',
-      height: 115,
+      height: 148,
       category: 'work',
       tasks: [
         { id: '25-2', title: 'Lunch at the food trucks', completed: false },
@@ -625,7 +658,6 @@ export default function App() {
         { id: 'bl-25-1', title: 'Co-author a blog post or talk', completed: false },
         { id: 'bl-25-2', title: 'Hike the Appalachian Trail section', completed: false },
       ],
-      trend: { direction: 'up', nudge: '2 tasks completed this month' },
     },
   ]);
 
@@ -744,6 +776,31 @@ export default function App() {
     setMemories([...memories, newMemory]);
   };
 
+  // Grow a friend's flower after task completion + reflection
+  const handleGrowFriend = (friendId: string) => {
+    setFriends(prev => prev.map(friend => {
+      if (friend.id !== friendId) return friend;
+      const { strengthDelta, heightDelta } = calculateGrowth(
+        friend.relationshipNature?.type,
+      );
+      return {
+        ...friend,
+        relationshipStrength: Math.min(friend.relationshipStrength + strengthDelta, 100),
+        height: Math.min(friend.height + heightDelta, 150),
+      };
+    }));
+  };
+
+  // Combined handler: save reflection memory + grow the flower(s)
+  const handleReflectionComplete = (
+    memory: Omit<Memory, 'id'>,
+    friendIds: string[],
+    enjoymentRating: number,
+  ) => {
+    handleAddMemory({ ...memory, enjoymentRating });
+    friendIds.forEach(id => handleGrowFriend(id));
+  };
+
   // Get unique relationship categories for the modal
   const existingRelationships = Array.from(new Set(friends.map(f => {
     if (f.category === 'friends') return 'Friends & Family';
@@ -767,9 +824,9 @@ export default function App() {
             {activeFriend ? (
               <>
                 {theme === 'city' ? (
-                  <ConnectionDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <ConnectionDetailView friend={activeFriend} allFriends={friends} memories={memories} onBack={handleBackToGarden} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 ) : (
-                  <FriendDetailView friend={activeFriend} allFriends={friends} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
+                  <FriendDetailView friend={activeFriend} allFriends={friends} memories={memories} onBack={handleBackToGarden} theme={theme === 'desert' ? 'desert' : 'garden'} onToggleTask={handleDetailViewToggleTask} onUpdateRelationshipNature={handleUpdateRelationshipNature} onToggleBucketItem={handleToggleBucketItem} onAddTaskToFriend={handleAddTaskToFriend} onCreateTaskFromRecommendation={handleCreateTaskFromRecommendation} />
                 )}
                 <BottomNav currentView={currentView} onNavigate={handleNavClick} theme={theme} />
               </>
@@ -799,7 +856,7 @@ export default function App() {
                   </>
                 )}
                 {currentView === 'tasks' && (
-                  <TasksView friends={friends} onAddMemory={handleAddMemory} theme={theme} onToggleTask={handleToggleTask} onToggleGroupTasks={handleToggleGroupTasks} onAddTaskToFriend={handleAddTaskToFriend} taskPrefill={taskPrefill} onClearPrefill={() => setTaskPrefill(null)} />
+                  <TasksView friends={friends} onReflectionComplete={handleReflectionComplete} theme={theme} onToggleTask={handleToggleTask} onToggleGroupTasks={handleToggleGroupTasks} onAddTaskToFriend={handleAddTaskToFriend} taskPrefill={taskPrefill} onClearPrefill={() => setTaskPrefill(null)} />
                 )}
                 {currentView === 'memories' && (
                   <MemoriesView friends={friends} memories={memories} theme={theme} />
@@ -845,8 +902,8 @@ export default function App() {
               taskDate={detailReflection.taskDate}
               theme={theme}
               friendIds={[detailReflection.friendId]}
-              onSave={(memory) => {
-                handleAddMemory(memory);
+              onSave={(memory, friendIds, enjoymentRating) => {
+                handleReflectionComplete(memory, friendIds, enjoymentRating);
                 setDetailReflection(null);
               }}
               onCancel={() => {
