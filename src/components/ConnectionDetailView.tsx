@@ -1,9 +1,34 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus, ChevronDown, Calendar } from 'lucide-react';
 import { Friend, RelationshipNature, Task, BucketListItem, Memory, getRelationshipTrend } from '../App';
 import { Building } from './Building';
 import { AiRecommendations } from './AiRecommendations';
 import { RelationshipInfoTab } from './RelationshipInfoTab';
+import { CreateTaskModal } from './CreateTaskModal';
+
+const formatTaskDate = (date: Date): string => {
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const d = new Date(date);
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  if (d.getTime() === today.getTime()) return 'Today';
+  if (d.getTime() === tomorrow.getTime()) return 'Tomorrow';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const getDateColor = (date: Date): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff <= 1) return 'text-red-500';
+  if (diff <= 3) return 'text-orange-500';
+  return 'text-[#2E7D9B]';
+};
 
 interface ConnectionDetailViewProps {
   friend: Friend;
@@ -19,7 +44,11 @@ interface ConnectionDetailViewProps {
 
 export function ConnectionDetailView({ friend, allFriends, memories, onBack, onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: ConnectionDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'tasks' | 'photos' | 'bucket' | 'about'>('tasks');
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const tasks = friend.tasks;
+  const pendingTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
   const bucketList = friend.bucketList || [];
 
   const toggleTask = (taskId: string) => {
@@ -129,35 +158,73 @@ export function ConnectionDetailView({ friend, allFriends, memories, onBack, onT
             <div className="bg-white rounded-2xl p-5 shadow-lg border-2 border-[#B0D8E8]">
               <h2 className="text-xl text-[#2E5C8A] mb-4">Tasks & To-Dos</h2>
               <div className="space-y-3">
-                {tasks.map((task) => (
+                {pendingTasks.map((task) => (
                   <div
                     key={task.id}
                     onClick={() => toggleTask(task.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-[#E0F2F7] hover:bg-[#B0D8E8] transition-colors cursor-pointer"
+                    className="flex items-start gap-3 p-3 rounded-xl bg-[#E0F2F7] hover:bg-[#B0D8E8] transition-colors cursor-pointer"
                   >
-                    {task.completed ? (
-                      <CheckCircle2 className="w-6 h-6 text-[#4A90E2] flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-[#2E7D9B] flex-shrink-0" />
-                    )}
-                    <span
-                      className={`flex-1 ${
-                        task.completed
-                          ? 'text-[#2E5C8A]/60 line-through'
-                          : 'text-[#2E5C8A]'
-                      }`}
-                    >
-                      {task.title}
-                    </span>
+                    <Circle className="w-6 h-6 text-[#2E7D9B] flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[#2E5C8A]">{task.title}</span>
+                      {task.date && (
+                        <div className={`flex items-center gap-1 mt-1 ${getDateColor(task.date)}`}>
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-xs font-medium">{formatTaskDate(task.date)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {tasks.length === 0 && (
+              {pendingTasks.length === 0 && completedTasks.length === 0 && (
                 <p className="text-[#2E7D9B] text-center py-4">
                   No tasks yet. Add some to strengthen your connection!
                 </p>
               )}
+
+              {pendingTasks.length === 0 && completedTasks.length > 0 && (
+                <p className="text-[#2E7D9B] text-center py-2 text-sm">
+                  All caught up! Plan something new below.
+                </p>
+              )}
+
+              {/* Completed tasks - collapsible */}
+              {completedTasks.length > 0 && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    className="flex items-center gap-2 text-sm text-[#2E7D9B] hover:text-[#2E5C8A] transition-colors"
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showCompleted ? 'rotate-180' : ''}`} />
+                    {completedTasks.length} completed task{completedTasks.length !== 1 ? 's' : ''}
+                  </button>
+                  {showCompleted && (
+                    <div className="space-y-2 mt-3">
+                      {completedTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          onClick={() => toggleTask(task.id)}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-[#E0F2F7]/50 hover:bg-[#B0D8E8]/50 transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-6 h-6 text-[#4A90E2] flex-shrink-0" />
+                          <span className="flex-1 text-[#2E5C8A]/60 line-through">{task.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Create New Task Button */}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-br from-[#4A90E2] to-[#2E5C8A] text-white py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                Create New Task
+              </button>
             </div>
 
             {/* Lumilink Recommendations */}
@@ -244,6 +311,34 @@ export function ConnectionDetailView({ friend, allFriends, memories, onBack, onT
           />
         )}
       </div>
+
+      {/* Create New Task Modal */}
+      {showCreateModal && (
+        <CreateTaskModal
+          friends={allFriends}
+          themeStyles={{
+            textPrimary: 'text-[#1B3A5F]', textSecondary: 'text-[#1B3A5F]/70', textTertiary: 'text-[#1B3A5F]/50',
+            accentBg: 'bg-[#1B3A5F]', accentText: 'text-[#1B3A5F]', border: 'border-[#1B3A5F]',
+            focusBorder: 'focus:border-[#1B3A5F]', cardBgLight: 'bg-[#E0F2F7]', cardBgHover: 'hover:bg-[#E0F2F7]',
+            buttonGradient: 'from-[#1B3A5F] to-[#2E5C8A]', buttonGradientHover: 'hover:from-[#2E5C8A] hover:to-[#1B3A5F]',
+          }}
+          initialSelectedFriends={new Set([friend.id])}
+          onClose={() => setShowCreateModal(false)}
+          onCreateTask={(data) => {
+            data.selectedFriendIds.forEach(friendId => {
+              onAddTaskToFriend(friendId, {
+                id: `task-${Date.now()}-${friendId}`,
+                title: data.title,
+                completed: false,
+                groupId: data.isGroup ? `group-${Date.now()}` : undefined,
+                groupName: data.isGroup ? data.groupName : undefined,
+                date: data.date,
+              });
+            });
+            setShowCreateModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

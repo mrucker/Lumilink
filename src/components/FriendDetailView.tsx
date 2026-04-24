@@ -1,10 +1,35 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Camera, ListChecks, Compass, Heart, Plus, ChevronDown, Calendar } from 'lucide-react';
 import { Friend, RelationshipNature, Task, BucketListItem, Memory, getRelationshipTrend } from '../App';
 import { Flower } from './Flower';
 import { DesertPlant } from './DesertPlant';
 import { AiRecommendations } from './AiRecommendations';
 import { RelationshipInfoTab } from './RelationshipInfoTab';
+import { CreateTaskModal } from './CreateTaskModal';
+
+const formatTaskDate = (date: Date): string => {
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const d = new Date(date);
+  today.setHours(0, 0, 0, 0);
+  tomorrow.setHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
+  if (d.getTime() === today.getTime()) return 'Today';
+  if (d.getTime() === tomorrow.getTime()) return 'Tomorrow';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const getDateColor = (date: Date): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff <= 1) return 'text-red-500';
+  if (diff <= 3) return 'text-orange-500';
+  return 'text-[#7C6F5B]';
+};
 
 interface FriendDetailViewProps {
   friend: Friend;
@@ -21,7 +46,11 @@ interface FriendDetailViewProps {
 
 export function FriendDetailView({ friend, allFriends, memories, onBack, theme = 'garden', onToggleTask, onUpdateRelationshipNature, onToggleBucketItem, onAddTaskToFriend, onCreateTaskFromRecommendation }: FriendDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'tasks' | 'photos' | 'bucket' | 'about'>('tasks');
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const tasks = friend.tasks;
+  const pendingTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
   const bucketList = friend.bucketList || [];
 
   const toggleTask = (taskId: string) => {
@@ -152,35 +181,73 @@ export function FriendDetailView({ friend, allFriends, memories, onBack, theme =
             <div className="bg-white rounded-2xl p-5 shadow-lg border-2 border-[#D4C5B0]">
               <h2 className="text-xl text-[#5D4E37] mb-4">Tasks & To-Dos</h2>
               <div className="space-y-3">
-                {tasks.map((task) => (
+                {pendingTasks.map((task) => (
                   <div
                     key={task.id}
                     onClick={() => toggleTask(task.id)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-[#F5F1E8] hover:bg-[#EDE7DB] transition-colors cursor-pointer"
+                    className="flex items-start gap-3 p-3 rounded-xl bg-[#F5F1E8] hover:bg-[#EDE7DB] transition-colors cursor-pointer"
                   >
-                    {task.completed ? (
-                      <CheckCircle2 className="w-6 h-6 text-[#6B8E4E] flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-[#7A6D57] flex-shrink-0" />
-                    )}
-                    <span
-                      className={`flex-1 ${
-                        task.completed
-                          ? 'text-[#7C6F5B] line-through'
-                          : 'text-[#5D4E37]'
-                      }`}
-                    >
-                      {task.title}
-                    </span>
+                    <Circle className="w-6 h-6 text-[#7A6D57] flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[#5D4E37]">{task.title}</span>
+                      {task.date && (
+                        <div className={`flex items-center gap-1 mt-1 ${getDateColor(task.date)}`}>
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-xs font-medium">{formatTaskDate(task.date)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {tasks.length === 0 && (
+              {pendingTasks.length === 0 && completedTasks.length === 0 && (
                 <p className="text-[#7C6F5B] text-center py-4">
                   No tasks yet. Add some to strengthen your friendship!
                 </p>
               )}
+
+              {pendingTasks.length === 0 && completedTasks.length > 0 && (
+                <p className="text-[#7C6F5B] text-center py-2 text-sm">
+                  All caught up! Plan something new below.
+                </p>
+              )}
+
+              {/* Completed tasks - collapsible */}
+              {completedTasks.length > 0 && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowCompleted(!showCompleted)}
+                    className="flex items-center gap-2 text-sm text-[#7C6F5B] hover:text-[#5D4E37] transition-colors"
+                  >
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showCompleted ? 'rotate-180' : ''}`} />
+                    {completedTasks.length} completed task{completedTasks.length !== 1 ? 's' : ''}
+                  </button>
+                  {showCompleted && (
+                    <div className="space-y-2 mt-3">
+                      {completedTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          onClick={() => toggleTask(task.id)}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-[#F5F1E8]/50 hover:bg-[#EDE7DB]/50 transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-6 h-6 text-[#6B8E4E] flex-shrink-0" />
+                          <span className="flex-1 text-[#7C6F5B] line-through">{task.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Create New Task Button */}
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className={`mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-br ${buttonBg} text-white py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95`}
+              >
+                <Plus className="w-4 h-4" />
+                Create New Task
+              </button>
             </div>
 
             {/* Lumilink Recommendations */}
@@ -267,6 +334,39 @@ export function FriendDetailView({ friend, allFriends, memories, onBack, theme =
           />
         )}
       </div>
+
+      {/* Create New Task Modal */}
+      {showCreateModal && (
+        <CreateTaskModal
+          friends={allFriends}
+          themeStyles={isDesert ? {
+            textPrimary: 'text-[#5D4E37]', textSecondary: 'text-[#6B5A42]', textTertiary: 'text-[#7A6D57]',
+            accentBg: 'bg-[#4A7C59]', accentText: 'text-[#4A7C59]', border: 'border-[#DEB887]',
+            focusBorder: 'focus:border-[#4A7C59]', cardBgLight: 'bg-[#FFF8E7]', cardBgHover: 'hover:bg-[#FFF8E7]',
+            buttonGradient: 'from-[#4A7C59] to-[#5A9B6F]', buttonGradientHover: 'hover:from-[#5A9B6F] hover:to-[#4A7C59]',
+          } : {
+            textPrimary: 'text-[#5D4E37]', textSecondary: 'text-[#7C6F5B]', textTertiary: 'text-[#7A6D57]',
+            accentBg: 'bg-[#6B8E4E]', accentText: 'text-[#6B8E4E]', border: 'border-[#D4C5B0]',
+            focusBorder: 'focus:border-[#6B8E4E]', cardBgLight: 'bg-[#FAFAF8]', cardBgHover: 'hover:bg-[#F5F1E8]',
+            buttonGradient: 'from-[#6B8E4E] to-[#5A7B3E]', buttonGradientHover: 'hover:from-[#5A7B3E] hover:to-[#6B8E4E]',
+          }}
+          initialSelectedFriends={new Set([friend.id])}
+          onClose={() => setShowCreateModal(false)}
+          onCreateTask={(data) => {
+            data.selectedFriendIds.forEach(friendId => {
+              onAddTaskToFriend(friendId, {
+                id: `task-${Date.now()}-${friendId}`,
+                title: data.title,
+                completed: false,
+                groupId: data.isGroup ? `group-${Date.now()}` : undefined,
+                groupName: data.isGroup ? data.groupName : undefined,
+                date: data.date,
+              });
+            });
+            setShowCreateModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

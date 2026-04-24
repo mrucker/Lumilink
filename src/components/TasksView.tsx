@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Circle, Plus, User, UserPlus, Heart, Send, Inbox, Sparkles, X, Check, Bell, Camera, MapPin, Upload, Image, Users, Calendar, Search } from 'lucide-react';
 import { Friend, Memory } from '../App';
+import { CreateTaskModal } from './CreateTaskModal';
 
 // Helper functions for date formatting
 const formatDate = (date: Date): string => {
@@ -115,10 +116,10 @@ export function TasksView({ friends, onReflectionComplete, theme, onToggleTask, 
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [enjoymentRating, setEnjoymentRating] = useState(3);
   
-  // Handle prefill from Lumilink Recommendations
+  // Handle prefill from Lumilink Recommendations or Plan Activity button
   useEffect(() => {
     if (taskPrefill) {
-      setNewTaskTitle(taskPrefill.title);
+      setNewTaskTitle(taskPrefill.title || '');
       if (taskPrefill.isGroup && taskPrefill.groupFriendIds) {
         setSelectedFriendsForTask(new Set(taskPrefill.groupFriendIds));
         setIsGroupActivity(true);
@@ -644,6 +645,18 @@ Respond with ONLY the question, nothing else.`;
       });
     }
 
+    // Also add the task directly to each friend's profile (auto-accept for demo)
+    selectedFriendIds.forEach(friendId => {
+      onAddTaskToFriend(friendId, {
+        id: `task-${Date.now()}-${friendId}`,
+        title: newTaskTitle.trim(),
+        completed: false,
+        groupId: groupId,
+        groupName: isGroupActivity ? (groupName.trim() || undefined) : undefined,
+        date: taskDate ? new Date(taskDate) : undefined,
+      });
+    });
+
     // Reset modal state
     setShowCreateTaskModal(false);
     setNewTaskTitle('');
@@ -654,7 +667,7 @@ Respond with ONLY the question, nothing else.`;
     setTaskDate('');
     setShowDatePicker(false);
     setFriendSearchQuery('');
-    
+
     // Switch to requests tab to see the new request
     setCurrentTab('requests');
   };
@@ -1288,223 +1301,89 @@ Respond with ONLY the question, nothing else.`;
 
       {/* Create Task Modal */}
       {showCreateTaskModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl max-h-[80vh] flex flex-col overflow-hidden relative">
-            {/* Header Section - Fixed */}
-            <div className="p-6 pb-4 flex-shrink-0">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-lg font-semibold ${themeStyles.textPrimary}`}>Create New Task</h3>
-                <button
-                  onClick={() => {
-                    setShowCreateTaskModal(false);
-                    setNewTaskTitle('');
-                    setSelectedFriendsForTask(new Set());
-                    setIsGroupActivity(false);
-                    setFriendSearchQuery('');
-                  }}
-                  className={themeStyles.textSecondary}
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+        <CreateTaskModal
+          friends={friends}
+          themeStyles={themeStyles}
+          initialSelectedFriends={selectedFriendsForTask}
+          initialTitle={newTaskTitle}
+          onClose={() => {
+            setShowCreateTaskModal(false);
+            setNewTaskTitle('');
+            setSelectedFriendsForTask(new Set());
+            setIsGroupActivity(false);
+            setFriendSearchQuery('');
+          }}
+          onCreateTask={(data) => {
+            // Update local state to match what handleCreateTask expects
+            setNewTaskTitle(data.title);
+            setSelectedFriendsForTask(new Set(data.selectedFriendIds));
+            setIsGroupActivity(data.isGroup);
+            setGroupName(data.groupName || '');
+            setTaskDate(data.date ? data.date.toISOString().split('T')[0] : '');
 
-              {/* Task Title Input */}
-              <input
-              type="text"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              placeholder="Enter task title..."
-              className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
-            />
+            // Run the existing create logic
+            const groupId = data.isGroup ? `group-${Date.now()}` : undefined;
+            const newTask = { id: `${Date.now()}`, title: data.title, date: data.date };
 
-            {/* Group Activity Toggle */}
-            <div className={`flex items-center justify-between p-3 border-2 ${themeStyles.border} rounded-xl mb-4`}>
-              <div className="flex items-center gap-2">
-                <Users className={`w-5 h-5 ${themeStyles.textPrimary}`} />
-                <div>
-                  <p className={`text-sm font-medium ${themeStyles.textPrimary}`}>Group Activity</p>
-                  <p className={`text-xs ${themeStyles.textSecondary}`}>Do this with all selected friends together</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsGroupActivity(!isGroupActivity)}
-                className={`w-12 h-6 rounded-full transition-all relative ${
-                  isGroupActivity ? themeStyles.accentBg : 'bg-gray-300'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
-                  isGroupActivity ? 'right-0.5' : 'left-0.5'
-                }`} />
-              </button>
-            </div>
-
-            {/* Group Name Input */}
-            {isGroupActivity && (
-              <input
-                type="text"
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
-                placeholder="Enter group name (e.g., 'Weekend Squad', 'Book Club')..."
-                className={`w-full p-3 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm mb-4`}
-              />
-            )}
-
-            <p className={`text-sm mb-4 ${themeStyles.textSecondary}`}>
-              {isGroupActivity 
-                ? '🎉 This will send ONE group request to all selected friends' 
-                : 'Select friends to send individual requests to'}
-            </p>
-
-            {/* Date Picker Section (Optional) */}
-            <div className={`border-2 ${themeStyles.border} rounded-xl p-4 mb-4`}>
-              <button
-                onClick={() => setShowDatePicker(!showDatePicker)}
-                className={`w-full flex items-center justify-between`}
-              >
-                <div className="flex items-center gap-2">
-                  <Calendar className={`w-5 h-5 ${themeStyles.textPrimary}`} />
-                  <div className="text-left">
-                    <p className={`text-sm font-medium ${themeStyles.textPrimary}`}>Add Date (Optional)</p>
-                    {taskDate && (
-                      <p className={`text-xs ${themeStyles.accentText} mt-0.5`}>
-                        {formatDate(new Date(taskDate))}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <svg
-                  className={`w-4 h-4 ${themeStyles.textSecondary} transition-transform ${showDatePicker ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showDatePicker && (
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <label className={`text-xs font-medium ${themeStyles.textSecondary} block mb-1`}>
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      value={taskDate}
-                      onChange={(e) => setTaskDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className={`w-full p-2 border-2 ${themeStyles.border} rounded-lg focus:outline-none ${themeStyles.focusBorder} text-sm`}
-                    />
-                  </div>
-                  {(taskDate) && (
-                    <button
-                      onClick={() => {
-                        setTaskDate('');
-                      }}
-                      className={`text-xs ${themeStyles.accentText} underline`}
-                    >
-                      Clear date
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Select All / Deselect All */}
-            <div className="flex gap-2 mb-3">
-              <button
-                onClick={selectAllFriendsForTask}
-                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all shadow-sm`}
-              >
-                Select All
-              </button>
-              <button
-                onClick={deselectAllFriendsForTask}
-                className={`flex-1 px-3 py-2 text-xs rounded-lg border-2 ${themeStyles.border} ${themeStyles.textPrimary} ${themeStyles.cardBgHover} transition-all shadow-sm`}
-              >
-                Deselect All
-              </button>
-            </div>
-
-            {/* Friend Search Bar */}
-            <div className="relative">
-              <Search className={`w-4 h-4 ${themeStyles.textSecondary} absolute left-3 top-1/2 transform -translate-y-1/2`} />
-              <input
-                type="text"
-                value={friendSearchQuery}
-                onChange={(e) => setFriendSearchQuery(e.target.value)}
-                placeholder="Search friends..."
-                className={`w-full pl-10 pr-3 py-2.5 border-2 ${themeStyles.border} rounded-xl focus:outline-none ${themeStyles.focusBorder} text-sm`}
-              />
-              {friendSearchQuery && (
-                <button
-                  onClick={() => setFriendSearchQuery('')}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeStyles.textSecondary} hover:${themeStyles.textPrimary}`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Friends List - Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 pb-24" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <style>{`
-              .hide-scrollbar::-webkit-scrollbar {
-                display: none;
+            if (data.isGroup && data.selectedFriendIds.length > 1) {
+              const friendNames = data.selectedFriendIds.map(id => friends.find(f => f.id === id)?.name || '');
+              const sortedIds = [...data.selectedFriendIds].sort().join(',');
+              const existing = taskRequests.find(req =>
+                req.direction === 'outgoing' && req.status === 'pending' && req.isGroup &&
+                req.toFriendIds && [...req.toFriendIds].sort().join(',') === sortedIds
+              );
+              if (existing) {
+                setTaskRequests(reqs => reqs.map(r => r.id === existing.id ? { ...r, tasks: [...r.tasks, newTask] } : r));
+              } else {
+                setTaskRequests(prev => [...prev, {
+                  id: `req-${Date.now()}`, fromUserId: 'me', fromUserName: 'You',
+                  toUserId: '', toUserName: friendNames.join(', '), toFriendIds: data.selectedFriendIds,
+                  tasks: [newTask], status: 'pending' as const, direction: 'outgoing' as const,
+                  isGroup: true, groupId, groupName: data.groupName,
+                }]);
               }
-            `}</style>
-            <div className="space-y-2 hide-scrollbar">
-              {friends
-                .filter(friend => 
-                    friend.name.toLowerCase().includes(friendSearchQuery.toLowerCase())
-                  )
-                .map(friend => {
-                  const isSelected = selectedFriendsForTask.has(friend.id);
-                  return (
-                    <button
-                      key={friend.id}
-                      onClick={() => toggleFriendSelectionForTask(friend.id)}
-                      className={`w-full px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 shadow-sm ${
-                        isSelected
-                          ? `${themeStyles.border} ${themeStyles.cardBgLight}`
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: friend.color }}
-                      />
-                      <span className={`flex-1 text-left text-sm font-medium ${themeStyles.textPrimary}`}>
-                        {friend.name}
-                      </span>
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        isSelected
-                          ? `${themeStyles.accentBg} border-transparent`
-                          : 'border-gray-300'
-                      }`}>
-                        {isSelected && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            } else {
+              data.selectedFriendIds.forEach(friendId => {
+                const friend = friends.find(f => f.id === friendId);
+                if (!friend) return;
+                const existing = taskRequests.find(req =>
+                  req.direction === 'outgoing' && req.status === 'pending' && req.toUserId === friendId && !req.isGroup
+                );
+                if (existing) {
+                  setTaskRequests(reqs => reqs.map(r => r.id === existing.id ? { ...r, tasks: [...r.tasks, newTask] } : r));
+                } else {
+                  setTaskRequests(prev => [...prev, {
+                    id: `req-${Date.now()}-${friendId}`, fromUserId: 'me', fromUserName: 'You',
+                    toUserId: friendId, toUserName: friend.name, tasks: [newTask],
+                    status: 'pending' as const, direction: 'outgoing' as const, isGroup: false,
+                  }]);
+                }
+              });
+            }
 
-            {/* Floating Button at Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white to-transparent pointer-events-none">
-              <button
-                onClick={handleCreateTask}
-                disabled={!newTaskTitle.trim() || selectedFriendsForTask.size === 0}
-                className={`w-full px-4 py-3 bg-gradient-to-r ${themeStyles.buttonGradient} text-white rounded-xl text-sm font-medium ${themeStyles.buttonGradientHover} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg pointer-events-auto`}
-              >
-                <Send className="w-4 h-4" />
-                Request Task
-                {selectedFriendsForTask.size > 0 && ` for ${selectedFriendsForTask.size} friend${selectedFriendsForTask.size !== 1 ? 's' : ''}`}
-              </button>
-            </div>
-          </div>
-        </div>
+            // Add task directly to each friend's profile
+            data.selectedFriendIds.forEach(friendId => {
+              onAddTaskToFriend(friendId, {
+                id: `task-${Date.now()}-${friendId}`,
+                title: data.title, completed: false,
+                groupId, groupName: data.isGroup ? (data.groupName || undefined) : undefined,
+                date: data.date,
+              });
+            });
+
+            // Reset
+            setShowCreateTaskModal(false);
+            setNewTaskTitle('');
+            setSelectedFriendsForTask(new Set());
+            setIsGroupActivity(false);
+            setGroupName('');
+            setShowGroupNameInput(false);
+            setTaskDate('');
+            setShowDatePicker(false);
+            setFriendSearchQuery('');
+            setCurrentTab('requests');
+          }}
+        />
       )}
     </div>
   );

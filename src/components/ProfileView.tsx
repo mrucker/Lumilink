@@ -1,4 +1,4 @@
-import { Bell, Shield, ChevronDown, Brain, Target, Heart, ExternalLink, Plus, X, Check, Edit2, User } from 'lucide-react';
+import { Bell, Shield, ChevronDown, Heart, ExternalLink, Plus, X, Check, Edit2, User, Users, CheckCircle2, ListTodo } from 'lucide-react';
 import { useState } from 'react';
 import { Friend } from '../App';
 
@@ -92,36 +92,12 @@ export default function ProfileView({
   const totalConnections = friends.length;
   const newConnections = friends.filter(f => f.relationshipStrength < 40).length;
   const totalTasks = friends.reduce((sum, friend) => sum + friend.tasks.filter(t => !t.completed).length, 0);
-  const completedTasksThisWeek = 7; // Mock data
-  const completedTasksLastWeek = 4; // Mock data
-  
+  const completedTasks = friends.reduce((sum, f) => sum + f.tasks.filter(t => t.completed).length, 0);
+
   const stats = [
-    { number: totalConnections, label: 'Total Connections', description: 'Your network size' },
-    { number: newConnections, label: 'New This Month', description: 'Recent additions' },
-    { number: totalTasks, label: 'Active Tasks', description: 'Pending activities' },
-  ];
-
-  const weeklyProgress = {
-    tasksCompleted: completedTasksThisWeek,
-    lastWeek: completedTasksLastWeek,
-    improvement: completedTasksThisWeek - completedTasksLastWeek,
-    message: completedTasksThisWeek > completedTasksLastWeek 
-      ? `🎉 You completed ${completedTasksThisWeek - completedTasksLastWeek} more task${completedTasksThisWeek - completedTasksLastWeek !== 1 ? 's' : ''} than last week!`
-      : completedTasksThisWeek === completedTasksLastWeek
-      ? `✨ You're staying consistent! Same as last week.`
-      : `Keep going! Every connection counts.`
-  };
-
-  const recentActivities = [
-    { activity: 'Coffee chat with Sarah', enjoyment: 5, date: '2 days ago', reflection: 'Great conversation about new projects' },
-    { activity: 'Game night with Marcus & Emma', enjoyment: 5, date: '4 days ago', reflection: 'So much fun! Want to do this monthly' },
-    { activity: 'Lunch with Alex', enjoyment: 4, date: '1 week ago', reflection: 'Nice catching up, felt a bit rushed' },
-  ];
-
-  const wellnessTasks = [
-    { icon: Brain, count: 5, lastWeek: 7, label: 'Mental' },
-    { icon: Target, count: 3, lastWeek: 2, label: 'Physical' },
-    { icon: Heart, count: 4, lastWeek: 3, label: 'Social' },
+    { number: totalConnections, label: 'Connections', icon: Users, iconBg: '#EEF2FF' },
+    { number: completedTasks, label: 'Tasks Done', icon: CheckCircle2, iconBg: '#ECFDF5' },
+    { number: totalTasks, label: 'Active Tasks', icon: ListTodo, iconBg: '#FFF7ED' },
   ];
 
   // Theme-based colors
@@ -684,50 +660,20 @@ export default function ProfileView({
       {/* Content */}
       <div className="px-6 py-6 space-y-4">
         {/* Your Stats */}
-        <div className="bg-white rounded-xl p-6 shadow-md border-2" style={{ borderColor: themeColors.border }}>
-          <h2 className="text-xl font-medium text-center mb-6" style={{ color: themeColors.text }}>Your Stats</h2>
-          <div className="grid grid-cols-3 gap-4">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-medium mb-1" style={{ color: themeColors.text }}>{stat.number}</div>
-                <div className="text-sm mb-1" style={{ color: themeColors.textLight }}>{stat.label}</div>
+        <div className="grid grid-cols-3 gap-3">
+          {stats.map((stat, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl p-4 shadow-md border text-center flex flex-col items-center gap-2"
+              style={{ borderColor: themeColors.border }}
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: stat.iconBg }}>
+                <stat.icon className="w-5 h-5" style={{ color: themeColors.accent }} />
               </div>
-            ))}
-          </div>
-
-          {/* Personal Wellness Tasks */}
-          <div className="mt-8 pt-6" style={{ borderTop: `1px solid ${themeColors.border}` }}>
-            <h3 className="text-lg font-medium text-center mb-4" style={{ color: themeColors.text }}>This Week's Progress</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {wellnessTasks.map((task, index) => {
-                const change = task.count - task.lastWeek;
-                return (
-                  <div key={index} className="text-center">
-                    <div className="flex justify-center mb-2">
-                      <task.icon className="w-8 h-8" style={{ color: themeColors.primary }} />
-                    </div>
-                    <div className="text-3xl font-medium mb-1" style={{ color: themeColors.text }}>{task.count}</div>
-                    <div className="text-sm mb-2" style={{ color: themeColors.textLight }}>{task.label}</div>
-                    {change > 0 && (
-                      <div className="text-xs font-medium" style={{ color: '#6B8E4E' }}>
-                        ↑{change} from last week!
-                      </div>
-                    )}
-                    {change === 0 && (
-                      <div className="text-xs font-medium" style={{ color: themeColors.textLight }}>
-                        Same as last week
-                      </div>
-                    )}
-                    {change < 0 && (
-                      <div className="text-xs font-medium" style={{ color: '#D97706' }}>
-                        ↓{Math.abs(change)} from last week
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              <div className="text-3xl font-semibold" style={{ color: themeColors.text }}>{stat.number}</div>
+              <div className="text-xs font-medium" style={{ color: themeColors.textLight }}>{stat.label}</div>
             </div>
-          </div>
+          ))}
         </div>
         
         {/* Notifications */}

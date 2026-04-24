@@ -138,7 +138,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'garden' | 'tasks' | 'memories' | 'profile'>('garden');
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [theme, setTheme] = useState<'city' | 'garden' | 'desert'>('city');
+  const [theme, setTheme] = useState<'city' | 'garden' | 'desert'>('garden');
   const [taskPrefill, setTaskPrefill] = useState<{ title: string; friendId: string; isGroup?: boolean; groupFriendIds?: string[] } | null>(null);
   const [detailReflection, setDetailReflection] = useState<{ taskId: string; taskTitle: string; friendId: string; friendName: string; taskDate?: Date } | null>(null);
   
@@ -253,7 +253,7 @@ export default function App() {
       height: 120,
       category: 'friends',
       tasks: [
-        { id: '1-2', title: 'Grab coffee together', completed: false, date: daysFromNow(2) },
+        { id: '1-2', title: 'Try the new ramen spot downtown', completed: false, date: daysFromNow(2) },
         { id: '1-3', title: 'Dinner at the new Italian restaurant', completed: true },
         { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
@@ -273,7 +273,7 @@ export default function App() {
       category: 'friends',
       tasks: [
         { id: '2-1', title: 'Game night at his place', completed: false, date: daysFromNow(5) },
-        { id: '2-2', title: 'Grab coffee together', completed: false },
+        { id: '2-2', title: 'Pickup basketball Saturday morning', completed: false, date: daysFromNow(4) },
         { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Study group in college', sharedInterests: ['gaming', 'basketball', 'movies'], communicationStyle: 'texting', friendshipSince: '2021' },
@@ -290,9 +290,9 @@ export default function App() {
       height: 150,
       category: 'friends',
       tasks: [
-        { id: '3-2', title: 'Lunch at the food market', completed: false, date: daysFromNow(1) },
-        { id: '3-3', title: 'Sunday brunch together', completed: false, date: daysFromNow(7) },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
+        { id: '3-2', title: 'Yoga class Wednesday evening', completed: false, date: daysFromNow(1) },
+        { id: '3-3', title: 'Sunday brunch at the farmers market', completed: false, date: daysFromNow(7) },
+        { id: '3-4', title: 'Book swap and coffee', completed: true },
       ],
       relationshipNature: { type: 'childhood-friend', howMet: 'Neighbors growing up', sharedInterests: ['brunch', 'yoga', 'reading'], communicationStyle: 'mixed', friendshipSince: '2010' },
       bucketList: [
@@ -309,8 +309,8 @@ export default function App() {
       height: 70,
       category: 'friends',
       tasks: [
-        { id: '4-2', title: 'Grab coffee together', completed: false },
-        { id: 'group-1', title: 'Weekend camping trip at Yosemite', completed: false, groupId: 'group-weekend-squad', groupName: 'Weekend Squad', date: daysFromNow(6) },
+        { id: '4-2', title: 'Shoot hoops after work', completed: false, date: daysFromNow(3) },
+        { id: '4-3', title: 'Check out the new gym together', completed: false },
       ],
       relationshipNature: { type: 'hobby-friend', howMet: 'Met at a pickup basketball game', sharedInterests: ['basketball', 'fitness'], communicationStyle: 'texting', friendshipSince: '2024' },
       bucketList: [
@@ -325,8 +325,9 @@ export default function App() {
       height: 105,
       category: 'friends',
       tasks: [
-        { id: '5-1', title: 'Lunch at the new cafe', completed: false, date: daysFromNow(1) },
+        { id: '5-1', title: 'Photo walk around the arts district', completed: false, date: daysFromNow(1) },
         { id: '5-2', title: 'Hiking at Griffith Park', completed: false, date: daysFromNow(4) },
+        { id: '5-3', title: 'Study session at the library', completed: true },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Same major in college', sharedInterests: ['hiking', 'photography', 'coffee'], communicationStyle: 'in-person', friendshipSince: '2021' },
       bucketList: [
@@ -342,7 +343,8 @@ export default function App() {
       height: 80,
       category: 'friends',
       tasks: [
-        { id: '6-1', title: 'Grab coffee together', completed: false, date: daysFromNow(3) },
+        { id: '6-1', title: 'Walk the dogs at the park', completed: false, date: daysFromNow(3) },
+        { id: '6-2', title: 'Cook dinner together', completed: false },
       ],
       relationshipNature: { type: 'neighbor', howMet: 'Lives in the same apartment building', sharedInterests: ['cooking', 'dogs'], communicationStyle: 'in-person', friendshipSince: '2023' },
       bucketList: [
@@ -393,7 +395,8 @@ export default function App() {
       height: 85,
       category: 'friends',
       tasks: [
-        { id: '9-1', title: 'Shopping at the mall', completed: false },
+        { id: '9-1', title: 'Thrift shopping Saturday', completed: false, date: daysFromNow(4) },
+        { id: '9-2', title: 'Brunch and people watching', completed: false },
       ],
       relationshipNature: { type: 'online-friend', howMet: 'Connected through mutual friends on Instagram', sharedInterests: ['fashion', 'shopping', 'brunch'], communicationStyle: 'social-media', friendshipSince: '2023' },
       bucketList: [
@@ -409,8 +412,8 @@ export default function App() {
       height: 100,
       category: 'friends',
       tasks: [
-        { id: '10-1', title: 'Watch movie or show together', completed: false },
-        { id: '10-2', title: 'Game night this Friday', completed: false, date: daysFromNow(5) },
+        { id: '10-1', title: 'Binge the new Netflix series', completed: false },
+        { id: '10-2', title: 'Concert at the Roxy Friday', completed: false, date: daysFromNow(5) },
       ],
       relationshipNature: { type: 'childhood-friend', howMet: 'Grew up on the same street', sharedInterests: ['gaming', 'movies', 'music'], communicationStyle: 'calls', friendshipSince: '2008' },
       bucketList: [
@@ -426,7 +429,9 @@ export default function App() {
       height: 150,
       category: 'friends',
       tasks: [
+        { id: '11-1', title: 'FaceTime call this week', completed: false, date: daysFromNow(2) },
         { id: '11-2', title: 'Visit for the weekend', completed: false, date: daysFromNow(13) },
+        { id: '11-3', title: 'Sent her that recipe she asked about', completed: true },
       ],
       relationshipNature: { type: 'immediate-family', howMet: 'Family', sharedInterests: ['cooking', 'gardening', 'family dinners'], communicationStyle: 'calls', friendshipSince: 'Always' },
       bucketList: [
@@ -442,6 +447,7 @@ export default function App() {
       height: 110,
       category: 'friends',
       tasks: [
+        { id: '12-1', title: 'Watch the game on Sunday', completed: false, date: daysFromNow(5) },
         { id: '12-2', title: 'Fishing at the lake', completed: false },
       ],
       relationshipNature: { type: 'immediate-family', howMet: 'Family', sharedInterests: ['fishing', 'sports', 'grilling'], communicationStyle: 'calls', friendshipSince: 'Always' },
@@ -458,7 +464,8 @@ export default function App() {
       height: 115,
       category: 'friends',
       tasks: [
-        { id: '13-2', title: 'Brunch this Sunday', completed: false },
+        { id: '13-1', title: 'Shopping for Mom\'s birthday gift', completed: false, date: daysFromNow(3) },
+        { id: '13-2', title: 'Brunch this Sunday', completed: false, date: daysFromNow(5) },
       ],
       relationshipNature: { type: 'immediate-family', howMet: 'Family', sharedInterests: ['brunch', 'shopping', 'travel'], communicationStyle: 'mixed', friendshipSince: 'Always' },
       bucketList: [
@@ -475,6 +482,7 @@ export default function App() {
       category: 'friends',
       tasks: [
         { id: '14-1', title: 'Play online game together', completed: true },
+        { id: '14-2', title: 'Call to catch up', completed: false },
       ],
       relationshipNature: { type: 'immediate-family', howMet: 'Family', sharedInterests: ['gaming', 'sports', 'movies'], communicationStyle: 'texting', friendshipSince: 'Always' },
       bucketList: [
@@ -490,7 +498,8 @@ export default function App() {
       height: 80,
       category: 'friends',
       tasks: [
-        { id: '15-2', title: 'Visit this weekend', completed: false },
+        { id: '15-1', title: 'Call and check in', completed: false, date: daysFromNow(1) },
+        { id: '15-2', title: 'Visit this weekend', completed: false, date: daysFromNow(5) },
       ],
       relationshipNature: { type: 'extended-family', howMet: 'Family', sharedInterests: ['baking', 'stories', 'gardening'], communicationStyle: 'calls', friendshipSince: 'Always' },
       bucketList: [
@@ -507,6 +516,7 @@ export default function App() {
       category: 'friends',
       tasks: [
         { id: '16-1', title: 'Catch up over drinks', completed: false },
+        { id: '16-2', title: 'Check out that vinyl shop', completed: false },
       ],
       relationshipNature: { type: 'school-friend', howMet: 'Had a few classes together', sharedInterests: ['music', 'coffee'], communicationStyle: 'social-media', friendshipSince: '2022' },
       bucketList: [
@@ -555,8 +565,8 @@ export default function App() {
       height: 95,
       category: 'work',
       tasks: [
-        { id: '19-1', title: 'Grab coffee together', completed: false },
-        { id: '19-2', title: 'Lunch at the new cafe', completed: false },
+        { id: '19-1', title: 'Listen to that podcast she recommended', completed: false },
+        { id: '19-2', title: 'Lunch at the new cafe', completed: false, date: daysFromNow(2) },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'Same team at work', sharedInterests: ['coffee', 'podcasts', 'career growth'], communicationStyle: 'in-person', friendshipSince: '2022' },
       bucketList: [
@@ -572,7 +582,7 @@ export default function App() {
       height: 75,
       category: 'work',
       tasks: [
-        { id: '20-1', title: 'Happy hour after work', completed: false },
+        { id: '20-1', title: 'Happy hour after work Friday', completed: false, date: daysFromNow(5) },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'Started at the company the same week', sharedInterests: ['happy hours', 'sports', 'tech'], communicationStyle: 'in-person', friendshipSince: '2023' },
       bucketList: [
@@ -587,8 +597,8 @@ export default function App() {
       height: 110,
       category: 'work',
       tasks: [
-        { id: '21-1', title: 'Lunch at the sushi place', completed: false },
-        { id: '21-2', title: 'Grab coffee together', completed: false },
+        { id: '21-1', title: 'Lunch at the sushi place', completed: false, date: daysFromNow(1) },
+        { id: '21-2', title: 'Morning run before work', completed: true },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'Partnered on a big project', sharedInterests: ['sushi', 'running', 'reading'], communicationStyle: 'mixed', friendshipSince: '2021' },
       bucketList: [
@@ -604,7 +614,8 @@ export default function App() {
       height: 68,
       category: 'work',
       tasks: [
-        { id: '22-1', title: 'Team lunch this Friday', completed: false },
+        { id: '22-1', title: 'Team lunch this Friday', completed: false, date: daysFromNow(5) },
+        { id: '22-2', title: 'Watch the football highlights', completed: false },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'Works in a different department', sharedInterests: ['lunch outings', 'football'], communicationStyle: 'in-person', friendshipSince: '2024' },
       bucketList: [
@@ -619,8 +630,8 @@ export default function App() {
       height: 90,
       category: 'work',
       tasks: [
-        { id: '23-1', title: 'Dinner at the steakhouse', completed: false },
-        { id: '23-2', title: 'Grab coffee together', completed: false },
+        { id: '23-1', title: 'Try that wine bar after work', completed: false, date: daysFromNow(4) },
+        { id: '23-2', title: 'Share travel recs for her trip', completed: false },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'Met at a work retreat', sharedInterests: ['food', 'wine', 'travel'], communicationStyle: 'texting', friendshipSince: '2022' },
       bucketList: [
@@ -636,7 +647,7 @@ export default function App() {
       height: 60,
       category: 'work',
       tasks: [
-        { id: '24-1', title: 'Coffee chat next week', completed: false },
+        { id: '24-1', title: 'Show him around the office', completed: false, date: daysFromNow(2) },
       ],
       relationshipNature: { type: 'work-colleague', howMet: 'New hire on the team', sharedInterests: ['coffee', 'tech'], communicationStyle: 'in-person', friendshipSince: '2025' },
       bucketList: [
